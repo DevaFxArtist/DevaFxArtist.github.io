@@ -182,9 +182,9 @@ if(card.size==="large") div.classList.add("large");
 div.innerHTML=`
 <span ondblclick="enableEdit(this,'${card.id}')">${card.title}</span>
 <div class="edit-controls">
-<button class="icon-btn" onclick="openLinkModal('${card.id}')">🔗</button>
-<button class="icon-btn" onclick="toggleSize('${card.id}')">⬛</button>
-<button class="icon-btn" onclick="deleteCard('${card.id}')">🗑</button>
+<button class="icon-btn" onclick="event.stopPropagation(); openLinkModal('${card.id}')">🔗</button>
+<button class="icon-btn" onclick="event.stopPropagation(); toggleSize('${card.id}')">⬛</button>
+<button class="icon-btn" onclick="event.stopPropagation(); deleteCard('${card.id}')">🗑</button>
 </div>
 `;
 
