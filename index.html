@@ -278,50 +278,45 @@ floatingEl.style.top=e.clientY-(floatingEl.offsetHeight/2)+"px";
 }
 
 function moveDrag(e){
-moveFloating(e);
 
-const dx=e.clientX-lastMouseX;
-const dy=e.clientY-lastMouseY;
+    moveFloating(e);
 
-lastMouseX=e.clientX;
-lastMouseY=e.clientY;
+    const grid = document.getElementById("grid");
+    const elements = [...grid.querySelectorAll(".card:not(.drag-placeholder)")];
 
-const elements=[...document.querySelectorAll(".grid .card:not(.drag-placeholder)")];
+    let closestEl = null;
+    let closestDistance = Infinity;
 
-for(const el of elements){
+    elements.forEach(el => {
 
-if(el===draggingEl) continue;
+        if(el === draggingEl) return;
 
-const rect=el.getBoundingClientRect();
-const midX=rect.left+rect.width/2;
-const midY=rect.top+rect.height/2;
+        const rect = el.getBoundingClientRect();
 
-const movingDown=dy>0;
-const movingUp=dy<0;
-const movingRight=dx>0;
-const movingLeft=dx<0;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-const crossedVertical=
-(movingDown && e.clientY>midY) ||
-(movingUp && e.clientY<midY);
+        const dx = e.clientX - centerX;
+        const dy = e.clientY - centerY;
 
-const crossedHorizontal=
-(movingRight && e.clientX>midX) ||
-(movingLeft && e.clientX<midX);
+        const distance = Math.sqrt(dx*dx + dy*dy);
 
-if(crossedVertical || crossedHorizontal){
+        if(distance < closestDistance){
+            closestDistance = distance;
+            closestEl = el;
+        }
+    });
 
-const grid=document.getElementById("grid");
+    if(closestEl){
+        const rect = closestEl.getBoundingClientRect();
+        const before = e.clientY < rect.top + rect.height / 2;
 
-if(movingDown || movingRight){
-grid.insertBefore(draggingEl,el.nextSibling);
-}else{
-grid.insertBefore(draggingEl,el);
-}
-
-break;
-}
-}
+        if(before){
+            grid.insertBefore(draggingEl, closestEl);
+        }else{
+            grid.insertBefore(draggingEl, closestEl.nextSibling);
+        }
+    }
 }
 
 function endDrag(){
