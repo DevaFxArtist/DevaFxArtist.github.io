@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel | DevFxArtist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: white;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .card-editor {
+            background: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .save-btn {
+            background: green;
+            color: white;
+        }
+
+        .add-btn {
+            background: #444;
+            color: white;
+        }
+
+        .delete-btn {
+            background: crimson;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Admin Editor</h1>
+
+<div id="editor"></div>
+
+<button class="add-btn" onclick="addCard()">Add New Card</button>
+<button class="save-btn" onclick="saveData()">Save Changes</button>
+
+<script>
+let cards = [];
+
+async function loadData() {
+    const response = await fetch('data.json');
+    cards = await response.json();
+    renderEditor();
+}
+
+function renderEditor() {
+    const container = document.getElementById('editor');
+    container.innerHTML = '';
+
+    cards.forEach((card, index) => {
+        container.innerHTML += `
+            <div class="card-editor">
+                <label>Title</label>
+                <input value="${card.title}" onchange="updateField(${index}, 'title', this.value)" />
+
+                <label>Link</label>
+                <input value="${card.link}" onchange="updateField(${index}, 'link', this.value)" />
+
+                <label>Size</label>
+                <select onchange="updateField(${index}, 'size', this.value)">
+                    <option value="normal" ${card.size === 'normal' ? 'selected' : ''}>Normal</option>
+                    <option value="large" ${card.size === 'large' ? 'selected' : ''}>Large</option>
+                </select>
+
+                <button class="delete-btn" onclick="deleteCard(${index})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+function updateField(index, field, value) {
+    cards[index][field] = value;
+}
+
+function addCard() {
+    cards.push({
+        title: "New Card",
+        link: "#",
+        size: "normal"
+    });
+    renderEditor();
+}
+
+function deleteCard(index) {
+    cards.splice(index, 1);
+    renderEditor();
+}
+
+function saveData() {
+    alert("Next step: We will connect this to GitHub API.");
+}
+
+loadData();
+</script>
+
+</body>
+</html>
