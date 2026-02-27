@@ -53,6 +53,7 @@
             color: white;
             transition: all 0.3s ease;
             border: 1px solid rgba(255,255,255,0.08);
+            font-size: 18px;
         }
 
         .card:hover {
@@ -86,23 +87,38 @@
     <p>FX Artist | Procedural FX | Houdini Specialist</p>
 </div>
 
-<div class="grid">
-
-    <a href="#" class="card large">🎬 Showreel</a>
-
-    <a href="https://linkedin.com" target="_blank" class="card">💼 LinkedIn</a>
-
-    <a href="https://instagram.com" target="_blank" class="card">📷 Instagram</a>
-
-    <a href="#" class="card">🔥 FX Projects</a>
-
-    <a href="mailto:your@email.com" class="card">📩 Contact Me</a>
-
-</div>
+<div class="grid" id="grid"></div>
 
 <footer>
     © 2026 Deva Bhuvaneswaran
 </footer>
+
+<script>
+async function loadGrid() {
+    const response = await fetch('data.json');
+    const cards = await response.json();
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+
+    cards.forEach(card => {
+        const a = document.createElement('a');
+        a.href = card.link;
+        a.className = 'card';
+
+        if (card.size === 'large') {
+            a.classList.add('large');
+        }
+
+        a.innerText = card.title;
+        a.target = "_blank";
+
+        grid.appendChild(a);
+    });
+}
+
+loadGrid();
+</script>
 
 </body>
 </html>
