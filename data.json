@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Showreel",
+    "link": "https://youtube.com/",
+    "size": "large"
+  },
+  {
+    "title": "LinkedIn",
+    "link": "https://linkedin.com/",
+    "size": "normal"
+  },
+  {
+    "title": "Instagram",
+    "link": "https://instagram.com/",
+    "size": "normal"
+  },
+  {
+    "title": "FX Projects",
+    "link": "#",
+    "size": "normal"
+  },
+  {
+    "title": "Contact Me",
+    "link": "mailto:your@email.com",
+    "size": "normal"
+  }
+]
