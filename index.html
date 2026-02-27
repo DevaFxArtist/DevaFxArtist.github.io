@@ -57,7 +57,7 @@
             .large{ grid-column:span 1; }
         }
 
-        /* EDIT MODE STYLES */
+        /* EDIT MODE */
 
         .edit-controls {
             position:absolute;
@@ -105,6 +105,11 @@
             border-radius:10px;
             cursor:pointer;
             box-shadow:0 0 20px rgba(0,0,0,0.5);
+            transition:all .3s ease;
+        }
+
+        .toggle-btn.save-mode {
+            background:green;
         }
 
         footer {
@@ -120,7 +125,7 @@
 <body>
 
 <div class="hero">
-    <h1 contenteditable="false" id="mainTitle">Deva Bhuvaneswaran</h1>
+    <h1>Deva Bhuvaneswaran</h1>
     <p>FX Artist | Procedural FX | Houdini Specialist</p>
 </div>
 
@@ -130,7 +135,7 @@
     © 2026 Deva Bhuvaneswaran
 </footer>
 
-<button class="toggle-btn" onclick="toggleEdit()">✏ Edit Mode</button>
+<button id="toggleBtn" class="toggle-btn" onclick="handleToggle()">✏ Edit Mode</button>
 
 <script>
 let cards = [];
@@ -152,7 +157,8 @@ function renderGrid(){
         if(card.size === "large") div.classList.add("large");
 
         div.innerHTML = `
-            <span contenteditable="${editMode}" onblur="updateTitle(${index}, this.innerText)">
+            <span contenteditable="${editMode}" 
+                  onblur="updateTitle(${index}, this.innerText)">
                 ${card.title}
             </span>
 
@@ -178,10 +184,23 @@ function renderGrid(){
     }
 }
 
-function toggleEdit(){
-    editMode = !editMode;
-    document.body.classList.toggle("edit-mode");
-    renderGrid();
+function handleToggle(){
+    if(!editMode){
+        editMode = true;
+        document.body.classList.add("edit-mode");
+        const btn = document.getElementById("toggleBtn");
+        btn.innerText = "💾 Save Changes";
+        btn.classList.add("save-mode");
+        renderGrid();
+    } else {
+        // Later this will trigger GitHub save
+        editMode = false;
+        document.body.classList.remove("edit-mode");
+        const btn = document.getElementById("toggleBtn");
+        btn.innerText = "✏ Edit Mode";
+        btn.classList.remove("save-mode");
+        renderGrid();
+    }
 }
 
 function updateTitle(index, value){
