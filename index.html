@@ -122,9 +122,8 @@ footer{text-align:center;padding:40px;color:#555;}
 <script>
 let cards=[];
 let editMode=false;
-let draggingIndex=null;
+let draggingEl=null;
 let floatingEl=null;
-let lastSwapIndex=null;
 
 async function loadGrid(){
 const res=await fetch("data.json");
@@ -136,24 +135,22 @@ function renderGrid(){
 const grid=document.getElementById("grid");
 grid.innerHTML="";
 
-cards.forEach((card,index)=>{
+cards.forEach((card)=>{
 const div=document.createElement("div");
 div.className="card";
 if(card.size==="large") div.classList.add("large");
 
+div.dataset.id=Math.random();
+
 div.innerHTML=`
-<span ondblclick="enableEdit(this,${index})">${card.title}</span>
+<span>${card.title}</span>
 <div class="edit-controls">
-<button class="icon-btn" onclick="deleteCard(${index})">🗑</button>
+<button class="icon-btn">🗑</button>
 </div>
 `;
 
-if(!editMode){
-div.onclick=()=>window.open(card.link,"_blank");
-}
-
 if(editMode){
-div.onmousedown=(e)=>startDrag(e,index,div);
+div.onmousedown=(e)=>startDrag(e,div);
 }
 
 grid.appendChild(div);
@@ -163,24 +160,12 @@ if(editMode){
 const add=document.createElement("div");
 add.className="card add-card";
 add.innerHTML="+";
-add.onclick=addCard;
 grid.appendChild(add);
 }
 }
 
-function enableEdit(el,index){
-if(!editMode) return;
-el.contentEditable=true;
-el.focus();
-el.onblur=()=>{
-cards[index].title=el.innerText;
-el.contentEditable=false;
-};
-}
-
-function startDrag(e,index,element){
-draggingIndex=index;
-lastSwapIndex=index;
+function startDrag(e,element){
+draggingEl=element;
 
 floatingEl=element.cloneNode(true);
 floatingEl.classList.add("floating");
@@ -193,8 +178,8 @@ element.innerHTML="";
 
 moveFloating(e);
 
-document.onmousemove=moveDrag;
-document.onmouseup=endDrag;
+document.addEventListener("mousemove",moveDrag);
+document.addEventListener("mouseup",endDrag);
 }
 
 function moveFloating(e){
@@ -205,21 +190,17 @@ floatingEl.style.top=e.clientY-(floatingEl.offsetHeight/2)+"px";
 function moveDrag(e){
 moveFloating(e);
 
-const elements=[...document.querySelectorAll(".card:not(.floating)")];
+const elements=[...document.querySelectorAll(".grid .card:not(.drag-placeholder)")];
 
-for(let i=0;i<elements.length;i++){
-const rect=elements[i].getBoundingClientRect();
+for(const el of elements){
+const rect=el.getBoundingClientRect();
 
 if(e.clientX>rect.left && e.clientX<rect.right &&
 e.clientY>rect.top && e.clientY<rect.bottom){
 
-if(i!==lastSwapIndex){
-const draggedItem=cards[draggingIndex];
-cards.splice(draggingIndex,1);
-cards.splice(i,0,draggedItem);
-draggingIndex=i;
-lastSwapIndex=i;
-renderGrid();
+const grid=document.getElementById("grid");
+if(el!==draggingEl){
+grid.insertBefore(draggingEl,el);
 }
 break;
 }
@@ -227,21 +208,25 @@ break;
 }
 
 function endDrag(){
-if(floatingEl) floatingEl.remove();
-floatingEl=null;
-document.onmousemove=null;
-document.onmouseup=null;
-renderGrid();
+draggingEl.classList.remove("drag-placeholder");
+draggingEl.innerHTML=floatingEl.innerHTML;
+floatingEl.remove();
+
+updateArrayFromDOM();
+
+document.removeEventListener("mousemove",moveDrag);
+document.removeEventListener("mouseup",endDrag);
 }
 
-function deleteCard(index){
-cards.splice(index,1);
-renderGrid();
-}
+function updateArrayFromDOM(){
+const domCards=[...document.querySelectorAll(".grid .card:not(.add-card)")];
+const newOrder=[];
 
-function addCard(){
-cards.push({title:"New Card",link:"#",size:"normal"});
-renderGrid();
+domCards.forEach((card,i)=>{
+newOrder.push(cards[i]);
+});
+
+cards=newOrder;
 }
 
 function handleToggle(){
