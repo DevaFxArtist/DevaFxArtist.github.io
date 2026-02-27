@@ -8,9 +8,9 @@
         * { margin:0; padding:0; box-sizing:border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: radial-gradient(circle at top, #111 0%, #000 60%);
-            color: white;
+            font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+            background:radial-gradient(circle at top,#111 0%,#000 60%);
+            color:white;
             min-height:100vh;
         }
 
@@ -46,6 +46,11 @@
             cursor:pointer;
         }
 
+        .card.dragging {
+            opacity:0.4;
+            transform:scale(0.95);
+        }
+
         .card:hover {
             transform:translateY(-6px);
             background:rgba(255,255,255,0.08);
@@ -57,8 +62,6 @@
             .large{ grid-column:span 1; }
         }
 
-        /* EDIT MODE */
-
         .edit-controls {
             position:absolute;
             top:8px;
@@ -67,9 +70,7 @@
             gap:8px;
         }
 
-        .edit-mode .edit-controls {
-            display:flex;
-        }
+        .edit-mode .edit-controls { display:flex; }
 
         .icon-btn {
             background:rgba(0,0,0,0.6);
@@ -90,9 +91,7 @@
             border:2px dashed rgba(255,255,255,0.2);
         }
 
-        .edit-mode .add-card {
-            display:flex;
-        }
+        .edit-mode .add-card { display:flex; }
 
         .toggle-btn {
             position:fixed;
@@ -118,7 +117,6 @@
             color:#555;
             font-size:14px;
         }
-
     </style>
 </head>
 
@@ -140,6 +138,7 @@
 <script>
 let cards = [];
 let editMode = false;
+let draggedIndex = null;
 
 async function loadGrid() {
     const res = await fetch('data.json');
@@ -154,6 +153,7 @@ function renderGrid(){
     cards.forEach((card, index)=>{
         const div = document.createElement("div");
         div.className = "card";
+        div.draggable = editMode;
         if(card.size === "large") div.classList.add("large");
 
         div.innerHTML = `
@@ -172,6 +172,31 @@ function renderGrid(){
             div.onclick = ()=> window.open(card.link, "_blank");
         }
 
+        // Drag Events
+        div.addEventListener("dragstart", ()=>{
+            draggedIndex = index;
+            div.classList.add("dragging");
+        });
+
+        div.addEventListener("dragend", ()=>{
+            div.classList.remove("dragging");
+        });
+
+        div.addEventListener("dragover", (e)=>{
+            e.preventDefault();
+        });
+
+        div.addEventListener("drop", ()=>{
+            if(draggedIndex === null) return;
+
+            const draggedItem = cards[draggedIndex];
+            cards.splice(draggedIndex,1);
+            cards.splice(index,0,draggedItem);
+
+            draggedIndex = null;
+            renderGrid();
+        });
+
         grid.appendChild(div);
     });
 
@@ -185,22 +210,21 @@ function renderGrid(){
 }
 
 function handleToggle(){
+    const btn = document.getElementById("toggleBtn");
+
     if(!editMode){
         editMode = true;
         document.body.classList.add("edit-mode");
-        const btn = document.getElementById("toggleBtn");
         btn.innerText = "💾 Save Changes";
         btn.classList.add("save-mode");
-        renderGrid();
     } else {
-        // Later this will trigger GitHub save
         editMode = false;
         document.body.classList.remove("edit-mode");
-        const btn = document.getElementById("toggleBtn");
         btn.innerText = "✏ Edit Mode";
         btn.classList.remove("save-mode");
-        renderGrid();
     }
+
+    renderGrid();
 }
 
 function updateTitle(index, value){
