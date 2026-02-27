@@ -103,6 +103,30 @@ transition:all .3s ease;
 .toggle-btn.save-mode{background:green;}
 
 footer{text-align:center;padding:40px;color:#555;}
+
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal-content{
+background:#1c1c1c;
+padding:30px;
+border-radius:12px;
+width:300px;
+}
+
+.modal input{
+width:100%;
+padding:8px;
+margin-top:10px;
+border-radius:6px;
+border:none;
+}
 </style>
 </head>
 
@@ -119,15 +143,29 @@ footer{text-align:center;padding:40px;color:#555;}
 
 <button id="toggleBtn" class="toggle-btn" onclick="handleToggle()">✏ Edit Mode</button>
 
+<div class="modal" id="linkModal">
+<div class="modal-content">
+<h3>Edit Link</h3>
+<input type="text" id="linkInput">
+<button onclick="saveLink()">Save</button>
+</div>
+</div>
+
 <script>
 let cards=[];
 let editMode=false;
 let draggingEl=null;
 let floatingEl=null;
+let editingId=null;
+
+function generateId(){
+return Math.random().toString(36).substr(2,9);
+}
 
 async function loadGrid(){
 const res=await fetch("data.json");
-cards=await res.json();
+const raw=await res.json();
+cards=raw.map(card=>({...card,id:generateId()}));
 renderGrid();
 }
 
@@ -135,19 +173,24 @@ function renderGrid(){
 const grid=document.getElementById("grid");
 grid.innerHTML="";
 
-cards.forEach((card)=>{
+cards.forEach(card=>{
 const div=document.createElement("div");
 div.className="card";
+div.dataset.id=card.id;
 if(card.size==="large") div.classList.add("large");
 
-div.dataset.id=Math.random();
-
 div.innerHTML=`
-<span>${card.title}</span>
+<span ondblclick="enableEdit(this,'${card.id}')">${card.title}</span>
 <div class="edit-controls">
-<button class="icon-btn">🗑</button>
+<button class="icon-btn" onclick="openLinkModal('${card.id}')">🔗</button>
+<button class="icon-btn" onclick="toggleSize('${card.id}')">⬛</button>
+<button class="icon-btn" onclick="deleteCard('${card.id}')">🗑</button>
 </div>
 `;
+
+if(!editMode){
+div.onclick=()=>window.open(card.link,"_blank");
+}
 
 if(editMode){
 div.onmousedown=(e)=>startDrag(e,div);
@@ -160,8 +203,49 @@ if(editMode){
 const add=document.createElement("div");
 add.className="card add-card";
 add.innerHTML="+";
+add.onclick=addCard;
 grid.appendChild(add);
 }
+}
+
+function enableEdit(el,id){
+if(!editMode) return;
+el.contentEditable=true;
+el.focus();
+el.onblur=()=>{
+const card=cards.find(c=>c.id===id);
+card.title=el.innerText;
+el.contentEditable=false;
+};
+}
+
+function deleteCard(id){
+cards=cards.filter(c=>c.id!==id);
+renderGrid();
+}
+
+function addCard(){
+cards.push({id:generateId(),title:"New Card",link:"#",size:"normal"});
+renderGrid();
+}
+
+function toggleSize(id){
+const card=cards.find(c=>c.id===id);
+card.size=card.size==="large"?"normal":"large";
+renderGrid();
+}
+
+function openLinkModal(id){
+editingId=id;
+document.getElementById("linkInput").value=
+cards.find(c=>c.id===id).link;
+document.getElementById("linkModal").style.display="flex";
+}
+
+function saveLink(){
+cards.find(c=>c.id===editingId).link=
+document.getElementById("linkInput").value;
+document.getElementById("linkModal").style.display="none";
 }
 
 function startDrag(e,element){
@@ -171,6 +255,7 @@ floatingEl=element.cloneNode(true);
 floatingEl.classList.add("floating");
 floatingEl.style.width=element.offsetWidth+"px";
 floatingEl.style.height=element.offsetHeight+"px";
+floatingEl.querySelector(".edit-controls")?.remove();
 document.body.appendChild(floatingEl);
 
 element.classList.add("drag-placeholder");
@@ -198,9 +283,8 @@ const rect=el.getBoundingClientRect();
 if(e.clientX>rect.left && e.clientX<rect.right &&
 e.clientY>rect.top && e.clientY<rect.bottom){
 
-const grid=document.getElementById("grid");
 if(el!==draggingEl){
-grid.insertBefore(draggingEl,el);
+el.parentNode.insertBefore(draggingEl,el);
 }
 break;
 }
@@ -210,8 +294,8 @@ break;
 function endDrag(){
 draggingEl.classList.remove("drag-placeholder");
 draggingEl.innerHTML=floatingEl.innerHTML;
-floatingEl.remove();
 
+floatingEl.remove();
 updateArrayFromDOM();
 
 document.removeEventListener("mousemove",moveDrag);
@@ -220,13 +304,9 @@ document.removeEventListener("mouseup",endDrag);
 
 function updateArrayFromDOM(){
 const domCards=[...document.querySelectorAll(".grid .card:not(.add-card)")];
-const newOrder=[];
-
-domCards.forEach((card,i)=>{
-newOrder.push(cards[i]);
+cards=domCards.map(el=>{
+return cards.find(c=>c.id===el.dataset.id);
 });
-
-cards=newOrder;
 }
 
 function handleToggle(){
