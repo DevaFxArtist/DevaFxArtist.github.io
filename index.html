@@ -42,16 +42,17 @@ cursor:pointer;
 
 .card.large{grid-column:span 2;}
 
-.card.drag-placeholder{
-opacity:0.2;
+.drag-placeholder{
+background:rgba(255,255,255,0.03);
+border:2px dashed rgba(255,255,255,0.15);
+color:transparent;
 }
 
 .floating{
 position:fixed;
 pointer-events:none;
 z-index:9999;
-width:260px;
-opacity:0.9;
+opacity:0.95;
 transform:scale(1.05);
 }
 
@@ -123,6 +124,7 @@ let cards=[];
 let editMode=false;
 let draggingIndex=null;
 let floatingEl=null;
+let lastSwapIndex=null;
 
 async function loadGrid(){
 const res=await fetch("data.json");
@@ -178,12 +180,16 @@ el.contentEditable=false;
 
 function startDrag(e,index,element){
 draggingIndex=index;
+lastSwapIndex=index;
 
 floatingEl=element.cloneNode(true);
 floatingEl.classList.add("floating");
+floatingEl.style.width=element.offsetWidth+"px";
+floatingEl.style.height=element.offsetHeight+"px";
 document.body.appendChild(floatingEl);
 
 element.classList.add("drag-placeholder");
+element.innerHTML="";
 
 moveFloating(e);
 
@@ -192,24 +198,27 @@ document.onmouseup=endDrag;
 }
 
 function moveFloating(e){
-floatingEl.style.left=e.clientX-130+"px";
-floatingEl.style.top=e.clientY-40+"px";
+floatingEl.style.left=e.clientX-(floatingEl.offsetWidth/2)+"px";
+floatingEl.style.top=e.clientY-(floatingEl.offsetHeight/2)+"px";
 }
 
 function moveDrag(e){
 moveFloating(e);
 
 const elements=[...document.querySelectorAll(".card:not(.floating)")];
+
 for(let i=0;i<elements.length;i++){
 const rect=elements[i].getBoundingClientRect();
+
 if(e.clientX>rect.left && e.clientX<rect.right &&
 e.clientY>rect.top && e.clientY<rect.bottom){
 
-if(i!==draggingIndex){
+if(i!==lastSwapIndex){
 const draggedItem=cards[draggingIndex];
 cards.splice(draggingIndex,1);
 cards.splice(i,0,draggedItem);
 draggingIndex=i;
+lastSwapIndex=i;
 renderGrid();
 }
 break;
@@ -218,11 +227,11 @@ break;
 }
 
 function endDrag(){
-document.querySelectorAll(".drag-placeholder").forEach(el=>el.classList.remove("drag-placeholder"));
 if(floatingEl) floatingEl.remove();
 floatingEl=null;
 document.onmousemove=null;
 document.onmouseup=null;
+renderGrid();
 }
 
 function deleteCard(index){
