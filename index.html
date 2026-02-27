@@ -14,11 +14,7 @@
             min-height:100vh;
         }
 
-        .hero {
-            text-align:center;
-            padding:80px 20px 40px;
-        }
-
+        .hero { text-align:center; padding:80px 20px 40px; }
         .hero h1 { font-size:48px; }
         .hero p { color:#aaa; margin-top:10px; }
 
@@ -38,9 +34,8 @@
             border-radius:16px;
             padding:40px 20px;
             text-align:center;
-            text-decoration:none;
             color:white;
-            transition:all .3s ease;
+            transition:all .25s ease;
             border:1px solid rgba(255,255,255,0.08);
             font-size:18px;
             cursor:pointer;
@@ -67,7 +62,7 @@
             top:8px;
             right:8px;
             display:none;
-            gap:8px;
+            gap:6px;
         }
 
         .edit-mode .edit-controls { display:flex; }
@@ -79,7 +74,7 @@
             border-radius:6px;
             padding:4px 6px;
             cursor:pointer;
-            font-size:14px;
+            font-size:13px;
         }
 
         .add-card {
@@ -107,9 +102,7 @@
             transition:all .3s ease;
         }
 
-        .toggle-btn.save-mode {
-            background:green;
-        }
+        .toggle-btn.save-mode { background:green; }
 
         footer {
             text-align:center;
@@ -117,6 +110,40 @@
             color:#555;
             font-size:14px;
         }
+
+        /* Modal */
+        .modal {
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.6);
+            display:none;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .modal-content {
+            background:#1c1c1c;
+            padding:30px;
+            border-radius:12px;
+            width:300px;
+        }
+
+        .modal input {
+            width:100%;
+            padding:8px;
+            margin-top:10px;
+            border-radius:6px;
+            border:none;
+        }
+
+        .modal button {
+            margin-top:15px;
+            padding:8px 12px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        }
+
     </style>
 </head>
 
@@ -129,18 +156,25 @@
 
 <div class="grid" id="grid"></div>
 
-<footer>
-    © 2026 Deva Bhuvaneswaran
-</footer>
+<footer>© 2026 Deva Bhuvaneswaran</footer>
 
 <button id="toggleBtn" class="toggle-btn" onclick="handleToggle()">✏ Edit Mode</button>
+
+<div class="modal" id="linkModal">
+    <div class="modal-content">
+        <h3>Edit Link</h3>
+        <input type="text" id="linkInput">
+        <button onclick="saveLink()">Save</button>
+    </div>
+</div>
 
 <script>
 let cards = [];
 let editMode = false;
 let draggedIndex = null;
+let editingLinkIndex = null;
 
-async function loadGrid() {
+async function loadGrid(){
     const res = await fetch('data.json');
     cards = await res.json();
     renderGrid();
@@ -150,50 +184,44 @@ function renderGrid(){
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
 
-    cards.forEach((card, index)=>{
+    cards.forEach((card,index)=>{
         const div = document.createElement("div");
-        div.className = "card";
+        div.className="card";
         div.draggable = editMode;
-        if(card.size === "large") div.classList.add("large");
+        if(card.size==="large") div.classList.add("large");
 
-        div.innerHTML = `
+        div.innerHTML=`
             <span contenteditable="${editMode}" 
-                  onblur="updateTitle(${index}, this.innerText)">
+                onblur="cards[${index}].title=this.innerText">
                 ${card.title}
             </span>
 
             <div class="edit-controls">
-                <button class="icon-btn" onclick="editLink(${index})">🔗</button>
+                <button class="icon-btn" onclick="openLinkModal(${index})">🔗</button>
+                <button class="icon-btn" onclick="toggleSize(${index})">⬛</button>
                 <button class="icon-btn" onclick="deleteCard(${index})">🗑</button>
             </div>
         `;
 
         if(!editMode){
-            div.onclick = ()=> window.open(card.link, "_blank");
+            div.onclick=()=>window.open(card.link,"_blank");
         }
 
-        // Drag Events
-        div.addEventListener("dragstart", ()=>{
-            draggedIndex = index;
+        div.addEventListener("dragstart",()=>{
+            draggedIndex=index;
             div.classList.add("dragging");
         });
 
-        div.addEventListener("dragend", ()=>{
+        div.addEventListener("dragend",()=>{
             div.classList.remove("dragging");
         });
 
-        div.addEventListener("dragover", (e)=>{
-            e.preventDefault();
-        });
+        div.addEventListener("dragover",(e)=>e.preventDefault());
 
-        div.addEventListener("drop", ()=>{
-            if(draggedIndex === null) return;
-
-            const draggedItem = cards[draggedIndex];
+        div.addEventListener("drop",()=>{
+            const draggedItem=cards[draggedIndex];
             cards.splice(draggedIndex,1);
             cards.splice(index,0,draggedItem);
-
-            draggedIndex = null;
             renderGrid();
         });
 
@@ -201,39 +229,29 @@ function renderGrid(){
     });
 
     if(editMode){
-        const add = document.createElement("div");
-        add.className = "card add-card";
-        add.innerHTML = "+";
-        add.onclick = addCard;
+        const add=document.createElement("div");
+        add.className="card add-card";
+        add.innerHTML="+";
+        add.onclick=addCard;
         grid.appendChild(add);
     }
 }
 
 function handleToggle(){
-    const btn = document.getElementById("toggleBtn");
+    const btn=document.getElementById("toggleBtn");
+    editMode=!editMode;
 
-    if(!editMode){
-        editMode = true;
+    if(editMode){
         document.body.classList.add("edit-mode");
-        btn.innerText = "💾 Save Changes";
+        btn.innerText="💾 Save Changes";
         btn.classList.add("save-mode");
-    } else {
-        editMode = false;
+    }else{
         document.body.classList.remove("edit-mode");
-        btn.innerText = "✏ Edit Mode";
+        btn.innerText="✏ Edit Mode";
         btn.classList.remove("save-mode");
     }
 
     renderGrid();
-}
-
-function updateTitle(index, value){
-    cards[index].title = value;
-}
-
-function editLink(index){
-    const newLink = prompt("Enter new link:", cards[index].link);
-    if(newLink) cards[index].link = newLink;
 }
 
 function deleteCard(index){
@@ -242,12 +260,24 @@ function deleteCard(index){
 }
 
 function addCard(){
-    cards.push({
-        title:"New Card",
-        link:"#",
-        size:"normal"
-    });
+    cards.push({title:"New Card",link:"#",size:"normal"});
     renderGrid();
+}
+
+function toggleSize(index){
+    cards[index].size = cards[index].size==="large" ? "normal" : "large";
+    renderGrid();
+}
+
+function openLinkModal(index){
+    editingLinkIndex=index;
+    document.getElementById("linkInput").value=cards[index].link;
+    document.getElementById("linkModal").style.display="flex";
+}
+
+function saveLink(){
+    cards[editingLinkIndex].link=document.getElementById("linkInput").value;
+    document.getElementById("linkModal").style.display="none";
 }
 
 loadGrid();
