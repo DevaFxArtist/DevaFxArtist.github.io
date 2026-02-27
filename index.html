@@ -36,7 +36,7 @@ border-radius:16px;
 padding:40px 20px;
 text-align:center;
 border:1px solid rgba(255,255,255,0.08);
-transition:all .2s ease;
+transition:transform .25s cubic-bezier(.2,.8,.2,1);
 cursor:pointer;
 }
 
@@ -157,6 +157,8 @@ let editMode=false;
 let draggingEl=null;
 let floatingEl=null;
 let editingId=null;
+let lastMouseX=0;
+let lastMouseY=0;
 
 function generateId(){
 return Math.random().toString(36).substr(2,9);
@@ -189,7 +191,7 @@ div.innerHTML=`
 `;
 
 if(!editMode){
-div.onclick=()=>window.open(card.link,"_blank");
+div.onclick=()=>window.open(card.link,"_blank","noopener");
 }
 
 if(editMode){
@@ -249,6 +251,10 @@ document.getElementById("linkModal").style.display="none";
 }
 
 function startDrag(e,element){
+
+lastMouseX=e.clientX;
+lastMouseY=e.clientY;
+
 draggingEl=element;
 
 floatingEl=element.cloneNode(true);
@@ -274,17 +280,45 @@ floatingEl.style.top=e.clientY-(floatingEl.offsetHeight/2)+"px";
 function moveDrag(e){
 moveFloating(e);
 
+const dx=e.clientX-lastMouseX;
+const dy=e.clientY-lastMouseY;
+
+lastMouseX=e.clientX;
+lastMouseY=e.clientY;
+
 const elements=[...document.querySelectorAll(".grid .card:not(.drag-placeholder)")];
 
 for(const el of elements){
+
+if(el===draggingEl) continue;
+
 const rect=el.getBoundingClientRect();
+const midX=rect.left+rect.width/2;
+const midY=rect.top+rect.height/2;
 
-if(e.clientX>rect.left && e.clientX<rect.right &&
-e.clientY>rect.top && e.clientY<rect.bottom){
+const movingDown=dy>0;
+const movingUp=dy<0;
+const movingRight=dx>0;
+const movingLeft=dx<0;
 
-if(el!==draggingEl){
-el.parentNode.insertBefore(draggingEl,el);
+const crossedVertical=
+(movingDown && e.clientY>midY) ||
+(movingUp && e.clientY<midY);
+
+const crossedHorizontal=
+(movingRight && e.clientX>midX) ||
+(movingLeft && e.clientX<midX);
+
+if(crossedVertical || crossedHorizontal){
+
+const grid=document.getElementById("grid");
+
+if(movingDown || movingRight){
+grid.insertBefore(draggingEl,el.nextSibling);
+}else{
+grid.insertBefore(draggingEl,el);
 }
+
 break;
 }
 }
@@ -292,7 +326,6 @@ break;
 
 function endDrag(){
 draggingEl.classList.remove("drag-placeholder");
-
 floatingEl.remove();
 updateArrayFromDOM();
 
