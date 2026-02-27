@@ -1,283 +1,255 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Deva Bhuvaneswaran | FX Artist</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deva | FX Artist</title>
 
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
 
-        body {
-            font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-            background:radial-gradient(circle at top,#111 0%,#000 60%);
-            color:white;
-            min-height:100vh;
-        }
+body{
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+background:radial-gradient(circle at top,#111 0%,#000 60%);
+color:white;
+min-height:100vh;
+user-select:none;
+}
 
-        .hero { text-align:center; padding:80px 20px 40px; }
-        .hero h1 { font-size:48px; }
-        .hero p { color:#aaa; margin-top:10px; }
+.hero{text-align:center;padding:80px 20px 40px;}
+.hero h1{font-size:48px;}
+.hero p{color:#aaa;margin-top:10px;}
 
-        .grid {
-            max-width:900px;
-            margin:40px auto;
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-            gap:20px;
-            padding:20px;
-        }
+.grid{
+max-width:900px;
+margin:40px auto;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+padding:20px;
+}
 
-        .card {
-            position:relative;
-            background:rgba(255,255,255,0.05);
-            backdrop-filter:blur(10px);
-            border-radius:16px;
-            padding:40px 20px;
-            text-align:center;
-            color:white;
-            transition:all .25s ease;
-            border:1px solid rgba(255,255,255,0.08);
-            font-size:18px;
-            cursor:pointer;
-        }
+.card{
+position:relative;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+border-radius:16px;
+padding:40px 20px;
+text-align:center;
+border:1px solid rgba(255,255,255,0.08);
+transition:all .2s ease;
+cursor:pointer;
+}
 
-        .card.dragging {
-            opacity:0.4;
-            transform:scale(0.95);
-        }
+.card.large{grid-column:span 2;}
 
-        .card:hover {
-            transform:translateY(-6px);
-            background:rgba(255,255,255,0.08);
-        }
+.card.drag-placeholder{
+opacity:0.2;
+}
 
-        .large { grid-column:span 2; }
+.floating{
+position:fixed;
+pointer-events:none;
+z-index:9999;
+width:260px;
+opacity:0.9;
+transform:scale(1.05);
+}
 
-        @media(max-width:600px){
-            .large{ grid-column:span 1; }
-        }
+.edit-controls{
+position:absolute;
+top:8px;
+right:8px;
+display:none;
+gap:6px;
+}
 
-        .edit-controls {
-            position:absolute;
-            top:8px;
-            right:8px;
-            display:none;
-            gap:6px;
-        }
+.edit-mode .edit-controls{display:flex;}
 
-        .edit-mode .edit-controls { display:flex; }
+.icon-btn{
+background:rgba(0,0,0,0.6);
+border:none;
+color:white;
+border-radius:6px;
+padding:4px 6px;
+cursor:pointer;
+font-size:13px;
+}
 
-        .icon-btn {
-            background:rgba(0,0,0,0.6);
-            border:none;
-            color:white;
-            border-radius:6px;
-            padding:4px 6px;
-            cursor:pointer;
-            font-size:13px;
-        }
+.add-card{
+display:none;
+align-items:center;
+justify-content:center;
+font-size:28px;
+background:rgba(255,255,255,0.05);
+border:2px dashed rgba(255,255,255,0.2);
+}
 
-        .add-card {
-            display:none;
-            align-items:center;
-            justify-content:center;
-            font-size:28px;
-            background:rgba(255,255,255,0.05);
-            border:2px dashed rgba(255,255,255,0.2);
-        }
+.edit-mode .add-card{display:flex;}
 
-        .edit-mode .add-card { display:flex; }
+.toggle-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#222;
+border:none;
+color:white;
+padding:12px 16px;
+border-radius:10px;
+cursor:pointer;
+transition:all .3s ease;
+}
 
-        .toggle-btn {
-            position:fixed;
-            bottom:20px;
-            right:20px;
-            background:#222;
-            border:none;
-            color:white;
-            padding:12px 16px;
-            border-radius:10px;
-            cursor:pointer;
-            box-shadow:0 0 20px rgba(0,0,0,0.5);
-            transition:all .3s ease;
-        }
+.toggle-btn.save-mode{background:green;}
 
-        .toggle-btn.save-mode { background:green; }
-
-        footer {
-            text-align:center;
-            padding:40px 20px;
-            color:#555;
-            font-size:14px;
-        }
-
-        /* Modal */
-        .modal {
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.6);
-            display:none;
-            align-items:center;
-            justify-content:center;
-        }
-
-        .modal-content {
-            background:#1c1c1c;
-            padding:30px;
-            border-radius:12px;
-            width:300px;
-        }
-
-        .modal input {
-            width:100%;
-            padding:8px;
-            margin-top:10px;
-            border-radius:6px;
-            border:none;
-        }
-
-        .modal button {
-            margin-top:15px;
-            padding:8px 12px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-        }
-
-    </style>
+footer{text-align:center;padding:40px;color:#555;}
+</style>
 </head>
 
 <body>
 
 <div class="hero">
-    <h1>Deva Bhuvaneswaran</h1>
-    <p>FX Artist | Procedural FX | Houdini Specialist</p>
+<h1>Deva Bhuvaneswaran</h1>
+<p>FX Artist | Procedural FX</p>
 </div>
 
 <div class="grid" id="grid"></div>
 
-<footer>© 2026 Deva Bhuvaneswaran</footer>
+<footer>© 2026 Deva</footer>
 
 <button id="toggleBtn" class="toggle-btn" onclick="handleToggle()">✏ Edit Mode</button>
 
-<div class="modal" id="linkModal">
-    <div class="modal-content">
-        <h3>Edit Link</h3>
-        <input type="text" id="linkInput">
-        <button onclick="saveLink()">Save</button>
-    </div>
-</div>
-
 <script>
-let cards = [];
-let editMode = false;
-let draggedIndex = null;
-let editingLinkIndex = null;
+let cards=[];
+let editMode=false;
+let draggingIndex=null;
+let floatingEl=null;
 
 async function loadGrid(){
-    const res = await fetch('data.json');
-    cards = await res.json();
-    renderGrid();
+const res=await fetch("data.json");
+cards=await res.json();
+renderGrid();
 }
 
 function renderGrid(){
-    const grid = document.getElementById("grid");
-    grid.innerHTML = "";
+const grid=document.getElementById("grid");
+grid.innerHTML="";
 
-    cards.forEach((card,index)=>{
-        const div = document.createElement("div");
-        div.className="card";
-        div.draggable = editMode;
-        if(card.size==="large") div.classList.add("large");
+cards.forEach((card,index)=>{
+const div=document.createElement("div");
+div.className="card";
+if(card.size==="large") div.classList.add("large");
 
-        div.innerHTML=`
-            <span contenteditable="${editMode}" 
-                onblur="cards[${index}].title=this.innerText">
-                ${card.title}
-            </span>
+div.innerHTML=`
+<span ondblclick="enableEdit(this,${index})">${card.title}</span>
+<div class="edit-controls">
+<button class="icon-btn" onclick="deleteCard(${index})">🗑</button>
+</div>
+`;
 
-            <div class="edit-controls">
-                <button class="icon-btn" onclick="openLinkModal(${index})">🔗</button>
-                <button class="icon-btn" onclick="toggleSize(${index})">⬛</button>
-                <button class="icon-btn" onclick="deleteCard(${index})">🗑</button>
-            </div>
-        `;
-
-        if(!editMode){
-            div.onclick=()=>window.open(card.link,"_blank");
-        }
-
-        div.addEventListener("dragstart",()=>{
-            draggedIndex=index;
-            div.classList.add("dragging");
-        });
-
-        div.addEventListener("dragend",()=>{
-            div.classList.remove("dragging");
-        });
-
-        div.addEventListener("dragover",(e)=>e.preventDefault());
-
-        div.addEventListener("drop",()=>{
-            const draggedItem=cards[draggedIndex];
-            cards.splice(draggedIndex,1);
-            cards.splice(index,0,draggedItem);
-            renderGrid();
-        });
-
-        grid.appendChild(div);
-    });
-
-    if(editMode){
-        const add=document.createElement("div");
-        add.className="card add-card";
-        add.innerHTML="+";
-        add.onclick=addCard;
-        grid.appendChild(add);
-    }
+if(!editMode){
+div.onclick=()=>window.open(card.link,"_blank");
 }
 
-function handleToggle(){
-    const btn=document.getElementById("toggleBtn");
-    editMode=!editMode;
+if(editMode){
+div.onmousedown=(e)=>startDrag(e,index,div);
+}
 
-    if(editMode){
-        document.body.classList.add("edit-mode");
-        btn.innerText="💾 Save Changes";
-        btn.classList.add("save-mode");
-    }else{
-        document.body.classList.remove("edit-mode");
-        btn.innerText="✏ Edit Mode";
-        btn.classList.remove("save-mode");
-    }
+grid.appendChild(div);
+});
 
-    renderGrid();
+if(editMode){
+const add=document.createElement("div");
+add.className="card add-card";
+add.innerHTML="+";
+add.onclick=addCard;
+grid.appendChild(add);
+}
+}
+
+function enableEdit(el,index){
+if(!editMode) return;
+el.contentEditable=true;
+el.focus();
+el.onblur=()=>{
+cards[index].title=el.innerText;
+el.contentEditable=false;
+};
+}
+
+function startDrag(e,index,element){
+draggingIndex=index;
+
+floatingEl=element.cloneNode(true);
+floatingEl.classList.add("floating");
+document.body.appendChild(floatingEl);
+
+element.classList.add("drag-placeholder");
+
+moveFloating(e);
+
+document.onmousemove=moveDrag;
+document.onmouseup=endDrag;
+}
+
+function moveFloating(e){
+floatingEl.style.left=e.clientX-130+"px";
+floatingEl.style.top=e.clientY-40+"px";
+}
+
+function moveDrag(e){
+moveFloating(e);
+
+const elements=[...document.querySelectorAll(".card:not(.floating)")];
+for(let i=0;i<elements.length;i++){
+const rect=elements[i].getBoundingClientRect();
+if(e.clientX>rect.left && e.clientX<rect.right &&
+e.clientY>rect.top && e.clientY<rect.bottom){
+
+if(i!==draggingIndex){
+const draggedItem=cards[draggingIndex];
+cards.splice(draggingIndex,1);
+cards.splice(i,0,draggedItem);
+draggingIndex=i;
+renderGrid();
+}
+break;
+}
+}
+}
+
+function endDrag(){
+document.querySelectorAll(".drag-placeholder").forEach(el=>el.classList.remove("drag-placeholder"));
+if(floatingEl) floatingEl.remove();
+floatingEl=null;
+document.onmousemove=null;
+document.onmouseup=null;
 }
 
 function deleteCard(index){
-    cards.splice(index,1);
-    renderGrid();
+cards.splice(index,1);
+renderGrid();
 }
 
 function addCard(){
-    cards.push({title:"New Card",link:"#",size:"normal"});
-    renderGrid();
+cards.push({title:"New Card",link:"#",size:"normal"});
+renderGrid();
 }
 
-function toggleSize(index){
-    cards[index].size = cards[index].size==="large" ? "normal" : "large";
-    renderGrid();
+function handleToggle(){
+editMode=!editMode;
+const btn=document.getElementById("toggleBtn");
+
+if(editMode){
+document.body.classList.add("edit-mode");
+btn.innerText="💾 Save Changes";
+btn.classList.add("save-mode");
+}else{
+document.body.classList.remove("edit-mode");
+btn.innerText="✏ Edit Mode";
+btn.classList.remove("save-mode");
 }
 
-function openLinkModal(index){
-    editingLinkIndex=index;
-    document.getElementById("linkInput").value=cards[index].link;
-    document.getElementById("linkModal").style.display="flex";
-}
-
-function saveLink(){
-    cards[editingLinkIndex].link=document.getElementById("linkInput").value;
-    document.getElementById("linkModal").style.display="none";
+renderGrid();
 }
 
 loadGrid();
