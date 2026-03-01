@@ -13,194 +13,178 @@ box-sizing:border-box;
 }
 
 body{
-font-family:Arial, Helvetica, sans-serif;
-background:radial-gradient(circle at top,#111 0%,#000 60%);
+font-family:Arial, sans-serif;
+background:#1f1f1f;
 color:white;
 }
 
-/* ===== CONTAINER ===== */
+/* ===== MAIN WRAPPER ===== */
 
 .container{
-max-width:1100px;
-margin:80px auto;
-padding:0 40px;
+max-width:950px;
+margin:70px auto;
 }
 
 /* ===== PROFILE ===== */
 
 .profile-card{
-background:#3a3a3a;
-border-radius:14px;
-padding:50px;
+background:#3b3b3b;
+border-radius:12px;
+padding:45px;
 display:flex;
+gap:45px;
 align-items:center;
-gap:50px;
 }
 
 .profile-pic{
-width:160px;
-height:160px;
+width:150px;
+height:150px;
 border-radius:50%;
 border:3px solid #d8d2a5;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:70px;
+font-size:60px;
 }
 
 .profile-info h1{
-font-size:28px;
-letter-spacing:1px;
+font-size:24px;
 margin-bottom:15px;
 }
 
 .profile-info p{
-font-size:14px;
+font-size:13px;
 line-height:1.6;
 color:#ddd;
-max-width:450px;
+max-width:420px;
 }
 
-/* ===== DIVIDER ===== */
-
 .divider{
-margin:60px 0;
-border-top:1px dashed rgba(255,255,255,0.2);
+margin:55px 0;
+border-top:1px dashed rgba(255,255,255,0.25);
 }
 
 /* ===== SHOWREEL SECTION ===== */
 
-.top-grid{
-display:grid;
-grid-template-columns:1.7fr 1fr;
-gap:80px;
-align-items:start;
+.showreel-wrapper{
+width:720px;
+margin:0 auto;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
 }
 
-/* LEFT COLUMN */
+.left-block{
+width:460px;
+display:flex;
+flex-direction:column;
+gap:25px;
+}
 
-.left-column{
+.showreel-btn{
+background:#c8c6a4;
+color:#000;
+padding:30px;
+font-size:24px;
+border-radius:6px;
+text-align:center;
+}
+
+.rd-btn{
+background:#7f8f82;
+color:#000;
+padding:18px;
+font-size:16px;
+border-radius:6px;
+text-align:center;
+}
+
+.right-block{
+width:200px;
 display:flex;
 flex-direction:column;
 gap:30px;
 }
 
-.big-btn{
-padding:35px;
-font-size:28px;
-background:#c8c6a4;
-color:#000;
-border-radius:6px;
-text-align:center;
-}
-
-.mid-btn{
-padding:20px;
-font-size:18px;
-background:#7f8f82;
-color:#000;
-border-radius:6px;
-text-align:center;
-}
-
-/* RIGHT COLUMN */
-
-.right-column{
-display:flex;
-flex-direction:column;
-gap:35px;
-}
-
-.side-icons{
+.icons-grid{
 display:grid;
-grid-template-columns:repeat(2,70px);
-gap:35px;
+grid-template-columns:repeat(2,60px);
+gap:30px;
 }
 
-.icon-circle{
-width:70px;
-height:70px;
+.icon{
+width:60px;
+height:60px;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
 font-weight:bold;
 color:white;
-font-size:18px;
 }
 
-/* icon colors */
 .linkedin{background:#2d5aa0;}
 .youtube{background:#c4302b;}
 .artstation{background:#13aff0;}
 .github{background:#6e5494;}
 
-/* CONTACT */
-
-.contact-box{
+.contact{
 display:flex;
 flex-direction:column;
-gap:15px;
-}
-
-.contact-item{
-padding:10px 18px;
-border-radius:4px;
-font-size:13px;
-width:220px;
+gap:12px;
 }
 
 .email{
 background:#b17c3f;
 color:black;
+padding:8px 14px;
+border-radius:4px;
+font-size:12px;
 }
 
 .phone{
 background:#bdbdc6;
 color:black;
+padding:8px 14px;
+border-radius:4px;
+font-size:12px;
 }
 
-/* ===== PHOTOGRAPHY TITLE ===== */
+/* ===== PHOTOGRAPHY ===== */
 
 .section-title{
 text-align:center;
-margin:50px 0;
+margin:40px 0;
 }
 
 .section-title span{
 background:#8c9b5c;
-padding:12px 45px;
+padding:10px 40px;
 border-radius:4px;
 color:black;
-font-size:20px;
+font-size:18px;
 }
-
-/* ===== PHOTOGRAPHY GRID ===== */
 
 .photo-grid{
+width:820px;
+margin:0 auto;
 display:grid;
 grid-template-columns:repeat(6,1fr);
-gap:25px;
+grid-auto-rows:130px;
+gap:20px;
 }
 
-.photo-item{
-background:#555;
-height:150px;
+.photo{
+background:#5a5a5a;
 border-radius:6px;
 }
 
-.large{
-grid-column:span 3;
-height:300px;
-}
+/* size variations */
 
-.medium{
-grid-column:span 2;
-}
-
-.small{
-grid-column:span 1;
-}
+.w2{grid-column:span 2;}
+.w3{grid-column:span 3;}
+.h2{grid-row:span 2;}
+.h3{grid-row:span 3;}
 
 </style>
 </head>
@@ -223,26 +207,26 @@ I aim to contribute my skills, creativity, and dedication to delivering extraord
 
 <div class="divider"></div>
 
-<!-- SHOWREEL SECTION -->
-<div class="top-grid">
+<!-- SHOWREEL -->
+<div class="showreel-wrapper">
 
-<div class="left-column">
-<div class="big-btn">Showreel</div>
-<div class="mid-btn">R&D Works</div>
+<div class="left-block">
+<div class="showreel-btn">Showreel</div>
+<div class="rd-btn">R&D Works</div>
 </div>
 
-<div class="right-column">
+<div class="right-block">
 
-<div class="side-icons">
-<div class="icon-circle linkedin">in</div>
-<div class="icon-circle youtube">▶</div>
-<div class="icon-circle artstation">A</div>
-<div class="icon-circle github">G</div>
+<div class="icons-grid">
+<div class="icon linkedin">in</div>
+<div class="icon youtube">▶</div>
+<div class="icon artstation">A</div>
+<div class="icon github">G</div>
 </div>
 
-<div class="contact-box">
-<div class="contact-item email">devafx.houdini@gmail.com</div>
-<div class="contact-item phone">9843626604</div>
+<div class="contact">
+<div class="email">devafx.houdini@gmail.com</div>
+<div class="phone">9843626604</div>
 </div>
 
 </div>
@@ -252,17 +236,21 @@ I aim to contribute my skills, creativity, and dedication to delivering extraord
 <div class="divider"></div>
 
 <!-- PHOTOGRAPHY -->
+
 <div class="section-title">
 <span>Photography</span>
 </div>
 
 <div class="photo-grid">
-<div class="photo-item large"></div>
-<div class="photo-item medium"></div>
-<div class="photo-item medium"></div>
-<div class="photo-item small"></div>
-<div class="photo-item small"></div>
-<div class="photo-item large"></div>
+<div class="photo w3 h2"></div>
+<div class="photo w3"></div>
+<div class="photo w2"></div>
+<div class="photo w2"></div>
+<div class="photo w2"></div>
+<div class="photo w3"></div>
+<div class="photo w3 h2"></div>
+<div class="photo w2"></div>
+<div class="photo w2"></div>
 </div>
 
 </div>
