@@ -65,51 +65,49 @@ margin:60px 0;
 border-top:1px dashed rgba(255,255,255,0.25);
 }
 
-/* ===== SHOWREEL SECTION ===== */
+/* ===== SHOWREEL SECTION REBUILD ===== */
 
 .top-grid{
-display:grid;
-grid-template-columns:1.6fr 1fr; /* better proportion */
-gap:60px;
-align-items:start;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+max-width:820px;
+margin:0 auto;
 }
 
-/* LEFT SIDE */
-
-.main-buttons{
+.left-column{
+width:480px;
 display:flex;
 flex-direction:column;
-gap:30px;
+gap:28px;
 }
 
 .big-btn{
-width:420px;  /* controlled width */
-padding:30px;
+width:420px;
+padding:28px;
 font-size:26px;
-text-align:center;
 border-radius:6px;
 background:#c8c6a4;
 color:#000;
-font-weight:500;
+text-align:center;
 }
 
 .mid-btn{
 width:420px;
 padding:18px;
 font-size:18px;
-text-align:center;
 border-radius:6px;
 background:#7f8f82;
 color:#000;
+text-align:center;
 }
 
-/* RIGHT SIDE */
-
 .right-column{
+width:260px;
 display:flex;
 flex-direction:column;
 align-items:flex-start;
-gap:30px;
+gap:28px;
 }
 
 .side-icons{
@@ -118,33 +116,10 @@ grid-template-columns:repeat(2,60px);
 gap:25px;
 }
 
-.icon-circle{
-width:60px;
-height:60px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:bold;
-color:white;
-}
-
-.linkedin{background:#0a66c2;}
-.youtube{background:#c4302b;}
-.artstation{background:#13aff0;}
-.github{background:#6e5494;}
-
 .contact-box{
 display:flex;
 flex-direction:column;
 gap:12px;
-}
-
-.contact-item{
-padding:8px 14px;
-font-size:13px;
-border-radius:4px;
-min-width:240px;
 }
 
 .email{background:#b17c3f;color:black;}
@@ -209,7 +184,7 @@ I aim to contribute my skills, creativity, and dedication to delivering extraord
 <!-- SHOWREEL SECTION -->
 <div class="top-grid">
 
-<div class="main-buttons">
+<div class="left-column">
 <div class="big-btn">Showreel</div>
 <div class="mid-btn">R&D Works</div>
 </div>
