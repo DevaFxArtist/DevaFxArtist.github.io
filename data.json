@@ -1,27 +1,247 @@
-[
-  {
-    "title": "Showreel",
-    "link": "https://youtube.com/",
-    "size": "large"
+{
+  "profile": {
+    "name": "Deva Bhuvaneswaran",
+    "about": "This is Deva, a passionate artist committed to continuously improving craft and creating high-quality visual effects.",
+    "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+    "nameFontSize": 2.2,
+    "nameLetterSpacing": 0.06,
+    "aboutWidth": 58
   },
-  {
-    "title": "LinkedIn",
-    "link": "https://linkedin.com/",
-    "size": "normal"
-  },
-  {
-    "title": "Instagram",
-    "link": "https://instagram.com/",
-    "size": "normal"
-  },
-  {
-    "title": "FX Projects",
-    "link": "#",
-    "size": "normal"
-  },
-  {
-    "title": "Contact Me",
-    "link": "mailto:your@email.com",
-    "size": "normal"
+  "ctas": [
+    {
+      "id": "cta-showreel",
+      "text": "Showreel",
+      "href": "https://www.youtube.com/",
+      "size": "large",
+      "newTab": true,
+      "style": {
+        "background": "rgba(230,220,166,0.28)",
+        "text": "#f4f7ff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    },
+    {
+      "id": "cta-rnd",
+      "text": "R&D Works",
+      "href": "#",
+      "size": "medium",
+      "newTab": false,
+      "style": {
+        "background": "rgba(152,208,183,0.22)",
+        "text": "#f4f7ff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    }
+  ],
+  "icons": [
+    {
+      "id": "c9c807e9-508d-4ed5-8de4-999097554a5a",
+      "label": "in",
+      "href": "https://linkedin.com",
+      "tooltip": "in",
+      "iconImage": "",
+      "size": 1,
+      "newTab": true,
+      "hover": true,
+      "style": {
+        "background": "rgba(93,122,255,0.32)",
+        "text": "#ffffff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    },
+    {
+      "id": "cf4642c9-7afd-4fd6-bb40-b6c020ec743f",
+      "label": "\u25b6",
+      "href": "https://youtube.com",
+      "tooltip": "\u25b6",
+      "iconImage": "",
+      "size": 1,
+      "newTab": true,
+      "hover": true,
+      "style": {
+        "background": "rgba(93,122,255,0.32)",
+        "text": "#ffffff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    },
+    {
+      "id": "e353b9f8-4900-4fa5-b2bc-14ea9a6e956d",
+      "label": "A",
+      "href": "https://www.artstation.com",
+      "tooltip": "A",
+      "iconImage": "",
+      "size": 1,
+      "newTab": true,
+      "hover": true,
+      "style": {
+        "background": "rgba(93,122,255,0.32)",
+        "text": "#ffffff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    },
+    {
+      "id": "f24cb98b-c396-4ce7-bcac-23fecb466ce8",
+      "label": "G",
+      "href": "https://github.com",
+      "tooltip": "G",
+      "iconImage": "",
+      "size": 1,
+      "newTab": true,
+      "hover": true,
+      "style": {
+        "background": "rgba(93,122,255,0.32)",
+        "text": "#ffffff",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    }
+  ],
+  "contacts": [
+    {
+      "id": "43a7d3c8-8e3d-4693-bf61-4ba1e3ef5baa",
+      "type": "email",
+      "value": "devafx.houdini@gmail.com",
+      "showIcon": true,
+      "copyEnabled": true,
+      "style": {
+        "background": "rgba(198,193,154,0.22)",
+        "text": "#f5f6fd",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    },
+    {
+      "id": "d8194e73-2d64-4f66-bc77-74fcde156aad",
+      "type": "phone",
+      "value": "9843626604",
+      "showIcon": true,
+      "copyEnabled": true,
+      "style": {
+        "background": "rgba(198,193,154,0.22)",
+        "text": "#f5f6fd",
+        "border": "rgba(255,255,255,0.2)",
+        "opacity": 0.12,
+        "blur": 20,
+        "glow": "rgba(130, 165, 255, 0.35)",
+        "radius": 18,
+        "padding": 1
+      }
+    }
+  ],
+  "photographyTitle": "Photography",
+  "photos": [
+    {
+      "id": "dae41db3-7287-45a8-9be4-7fa9b9b89408",
+      "image": "https://picsum.photos/seed/qxelnk/900/600",
+      "caption": "Untitled frame",
+      "size": "large",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "3050dce3-a8f7-4da3-81a2-87155a8c8ca7",
+      "image": "https://picsum.photos/seed/tedqwn/900/600",
+      "caption": "Untitled frame",
+      "size": "medium",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "b6500acc-600f-4d5d-9126-fa03915531ac",
+      "image": "https://picsum.photos/seed/arimtn/900/600",
+      "caption": "Untitled frame",
+      "size": "tall",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "14457b2d-faa5-48bf-b47c-49c5956583a6",
+      "image": "https://picsum.photos/seed/gahonl/900/600",
+      "caption": "Untitled frame",
+      "size": "small",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "fd6da02a-d927-481c-89b2-01dfcb7473c1",
+      "image": "https://picsum.photos/seed/nugvnj/900/600",
+      "caption": "Untitled frame",
+      "size": "large",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "8987acfc-f7a9-4fdf-9f60-09755e0e87db",
+      "image": "https://picsum.photos/seed/uasqmr/900/600",
+      "caption": "Untitled frame",
+      "size": "small",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "e0f7c449-da76-4b70-8dbd-366f3a13e117",
+      "image": "https://picsum.photos/seed/khemfb/900/600",
+      "caption": "Untitled frame",
+      "size": "medium",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    },
+    {
+      "id": "973544e3-33f5-44c9-8acb-c78e4016635d",
+      "image": "https://picsum.photos/seed/vcedyt/900/600",
+      "caption": "Untitled frame",
+      "size": "small",
+      "showCaption": false,
+      "lightbox": true,
+      "externalLink": ""
+    }
+  ],
+  "global": {
+    "fontFamily": "Inter, Segoe UI, system-ui, sans-serif",
+    "radius": 18,
+    "glassOpacity": 0.12,
+    "blur": 20,
+    "spacing": 1,
+    "gridGap": 1
   }
-]
+}
