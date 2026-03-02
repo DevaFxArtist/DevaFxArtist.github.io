@@ -1,506 +1,259 @@
-const STORAGE_KEY = 'portfolio-glass-data-v2';
-const AUTH_KEY = 'portfolio-admin-auth';
-const OWNER_AUTH = Object.freeze({
-  // Password: deva-owner-2026
-  hash: '095ab38a81c5d9507be339d817c77ecb89e7a461cfa5e7f145f281b6d44ad410'
-});
+const OWNER_HASH = '095ab38a81c5d9507be339d817c77ecb89e7a461cfa5e7f145f281b6d44ad410'; // deva-owner-2026
 
-const FALLBACK_DATA = {
-  profile: {
-    name: 'Deva Bhuvaneswaran',
-    about:
-      'This is Deva, a passionate artist committed to continuously improving craft and creating high-quality visual effects.',
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80',
-    nameFontSize: 2.2,
-    nameLetterSpacing: 0.06,
-    aboutWidth: 58
-  },
-  ctas: [
-    ctaItem('Showreel', 'https://www.youtube.com/', 'large', true, 'rgba(230,220,166,0.28)'),
-    ctaItem('R&D Works', '#', 'medium', false, 'rgba(152,208,183,0.22)')
-  ],
-  icons: [
-    iconItem('in', 'https://linkedin.com'),
-    iconItem('▶', 'https://youtube.com'),
-    iconItem('A', 'https://www.artstation.com'),
-    iconItem('G', 'https://github.com')
-  ],
-  contacts: [contactItem('email', 'devafx.houdini@gmail.com'), contactItem('phone', '9843626604')],
-  photographyTitle: 'Photography',
-  photos: [
-    photoItem('large'),
-    photoItem('medium'),
-    photoItem('tall'),
-    photoItem('small'),
-    photoItem('large'),
-    photoItem('small'),
-    photoItem('medium'),
-    photoItem('small')
-  ],
-  global: {
-    fontFamily: 'Inter, Segoe UI, system-ui, sans-serif',
-    radius: 18,
-    glassOpacity: 0.12,
-    blur: 20,
-    spacing: 1,
-    gridGap: 1
-  }
+const THEMES = {
+  midnight: { '--bg-main': '#1f232b', '--text-main': '#edf0f7' },
+  slate: { '--bg-main': '#24262e', '--text-main': '#f2f2f7' },
+  aurora: { '--bg-main': '#1e2830', '--text-main': '#f0fbff' }
 };
 
-function stylePreset(background = 'rgba(255,255,255,0.12)', text = '#edf0f7') {
-  return {
-    background,
-    text,
-    border: 'rgba(255,255,255,0.2)',
-    opacity: 0.12,
-    blur: 20,
-    glow: 'rgba(130, 165, 255, 0.35)',
-    radius: 18,
-    padding: 1
-  };
-}
-function ctaItem(text, href, size, newTab, bg) {
-  return { id: crypto.randomUUID(), text, href, size, newTab, style: stylePreset(bg, '#f4f7ff') };
-}
-function iconItem(label, href) {
-  return {
-    id: crypto.randomUUID(),
-    label,
-    href,
-    tooltip: label,
-    iconImage: '',
-    size: 1,
-    newTab: true,
-    hover: true,
-    style: stylePreset('rgba(93,122,255,0.32)', '#ffffff')
-  };
-}
-function contactItem(type, value) {
-  return {
-    id: crypto.randomUUID(),
-    type,
-    value,
-    showIcon: true,
-    copyEnabled: true,
-    style: stylePreset('rgba(198,193,154,0.22)', '#f5f6fd')
-  };
-}
-function photoItem(size) {
-  return {
-    id: crypto.randomUUID(),
-    image: `https://picsum.photos/seed/${Math.random().toString(36).slice(2)}/900/600`,
-    caption: 'Untitled frame',
-    size,
-    showCaption: false,
-    lightbox: true,
-    externalLink: ''
-  };
-}
-
-const state = { data: null, admin: readBooleanFlag(AUTH_KEY) };
+const state = { data: null, admin: false, popoverTarget: null, drag: null };
 const app = document.getElementById('app');
-const adminPanel = document.getElementById('adminPanel');
-const adminControls = document.getElementById('adminControls');
+const popover = document.getElementById('editPopover');
 const adminBtn = document.getElementById('adminAccessBtn');
+const themeBtn = document.getElementById('themeBtn');
+const exportBtn = document.getElementById('exportBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+
 const authDialog = document.getElementById('authDialog');
 const authForm = document.getElementById('authForm');
 const authError = document.getElementById('authError');
 const lightbox = document.getElementById('lightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const lightboxCaption = document.getElementById('lightboxCaption');
-const dynamicStyles = document.createElement('style');
-document.head.appendChild(dynamicStyles);
-
-
-function readBooleanFlag(key) {
-  return localStorage.getItem(key) === 'true';
-}
-
 
 document.getElementById('closeLightbox').addEventListener('click', () => lightbox.close());
-document.getElementById('logoutBtn').addEventListener('click', logout);
-document.getElementById('resetBtn').addEventListener('click', resetDefaults);
-document.getElementById('exportBtn').addEventListener('click', exportData);
-adminBtn.addEventListener('click', () => (state.admin ? toggleAdminPanel() : authDialog.showModal()));
-authForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  attemptLogin(new FormData(authForm).get('password'));
-});
+adminBtn.addEventListener('click', () => authDialog.showModal());
+authForm.addEventListener('submit', (e) => { e.preventDefault(); login(new FormData(authForm).get('password')); });
+logoutBtn.addEventListener('click', () => { state.admin = false; closePopover(); render(); });
+exportBtn.addEventListener('click', exportData);
+themeBtn.addEventListener('click', openThemePicker);
+document.addEventListener('click', onDocumentClick);
+window.addEventListener('resize', closePopover);
+
 init();
 
 async function init() {
-  state.data = await hydrateData();
+  const response = await fetch('data.json');
+  state.data = await response.json();
+  state.data.global.themePreset ??= 'midnight';
   render();
-}
-
-async function hydrateData() {
-  const local = localStorage.getItem(STORAGE_KEY);
-  if (local) {
-    try {
-      const parsedLocal = JSON.parse(local);
-      if (isValidDataShape(parsedLocal)) return parsedLocal;
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }
-
-  try {
-    const remote = await fetch('data.json');
-    if (remote.ok) {
-      const parsedRemote = await remote.json();
-      if (isValidDataShape(parsedRemote)) return parsedRemote;
-    }
-  } catch {}
-
-  return structuredClone(FALLBACK_DATA);
-}
-
-function isValidDataShape(data) {
-  return Boolean(
-    data &&
-      typeof data === 'object' &&
-      data.profile &&
-      data.global &&
-      Array.isArray(data.ctas) &&
-      Array.isArray(data.icons) &&
-      Array.isArray(data.contacts) &&
-      Array.isArray(data.photos)
-  );
 }
 
 function render() {
-  applyGlobalVars();
-  renderPublicView();
-  adminPanel.classList.toggle('hidden', !state.admin);
-  adminBtn.textContent = state.admin ? 'Toggle Admin Panel' : 'Owner Edit Mode';
-  if (state.admin) renderAdminControls();
-}
-
-function applyGlobalVars() {
-  const g = state.data.global;
-  const root = document.documentElement;
-  root.style.setProperty('--font-family', g.fontFamily);
-  root.style.setProperty('--radius-global', `${g.radius}px`);
-  root.style.setProperty('--glass-opacity', g.glassOpacity);
-  root.style.setProperty('--glass-blur', `${g.blur}px`);
-  root.style.setProperty('--spacing', `${g.spacing}rem`);
-  root.style.setProperty('--grid-gap', `${g.gridGap}rem`);
-}
-
-function renderPublicView() {
-  const d = state.data;
-  dynamicStyles.textContent = buildDynamicCss();
+  applyTheme();
+  document.body.classList.toggle('admin-mode', state.admin);
+  themeBtn.classList.toggle('hidden', !state.admin);
+  exportBtn.classList.toggle('hidden', !state.admin);
+  logoutBtn.classList.toggle('hidden', !state.admin);
   app.innerHTML = `
-  <section class="profile-card">
-    <div class="profile-image-wrap"><img src="${d.profile.image}" alt="Profile portrait" /></div>
-    <div class="profile-copy">
-      <h1>${escapeHtml(d.profile.name)}</h1>
-      <p>${escapeHtml(d.profile.about)}</p>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <section class="showreel-layout">
-    <div class="showreel-cta">
-      ${d.ctas
-        .map(
-          (cta, i) =>
-            `<a class="glass-button style-cta-${i}" data-size="${cta.size}" href="${cta.href}" ${
-              cta.newTab ? 'target="_blank" rel="noreferrer"' : ''
-            }>${escapeHtml(cta.text)}</a>`
-        )
-        .join('')}
-    </div>
-
-    <aside class="showreel-side">
-      <div class="icons-grid">
-        ${d.icons
-          .map(
-            (icon, i) => `<a title="${escapeHtml(icon.tooltip)}" class="icon-link style-icon-${i} ${
-              icon.hover ? '' : 'no-hover'
-            }" href="${icon.href}" ${icon.newTab ? 'target="_blank" rel="noreferrer"' : ''}>
-              ${icon.iconImage ? `<img src="${icon.iconImage}" alt="${escapeHtml(icon.tooltip)}" />` : `<span>${escapeHtml(icon.label)}</span>`}
-            </a>`
-          )
-          .join('')}
-      </div>
-
-      <div class="contact-stack">
-        ${d.contacts.map((c, i) => renderContact(c, i)).join('')}
-      </div>
-    </aside>
-  </section>
-
-  <div class="divider"></div>
-
-  <section>
-    <header class="section-header">
-      <span class="glass-chip">${escapeHtml(d.photographyTitle)}</span>
-    </header>
-    <div class="photo-grid">
-      ${d.photos.map(renderPhotoCard).join('')}
-    </div>
-  </section>
+    <section class="profile-card" data-editable="profile">
+      ${editTools('profile')}
+      <div class="profile-image-wrap"><img src="${state.data.profile.image}" alt="Profile"/></div>
+      <div class="profile-copy"><h1>${esc(state.data.profile.name)}</h1><p>${esc(state.data.profile.about)}</p></div>
+    </section>
+    <div class="divider"></div>
+    <section class="showreel-layout">
+      <div class="showreel-cta" data-zone="ctas">${state.data.ctas.map((x,i)=>renderCta(x,i)).join('')}</div>
+      <aside class="showreel-side">
+        <div class="icons-grid" data-zone="icons">${state.data.icons.map((x,i)=>renderIcon(x,i)).join('')}</div>
+        <div class="contact-stack">${state.data.contacts.map(renderContact).join('')}</div>
+      </aside>
+    </section>
+    <div class="divider"></div>
+    <section>
+      <header class="section-header"><span class="glass-button" data-size="small">${esc(state.data.photographyTitle)}</span></header>
+      <div class="photo-grid" data-zone="photos">${state.data.photos.map((x,i)=>renderPhoto(x,i)).join('')}</div>
+    </section>
   `;
 
-  app.querySelectorAll('[data-copy]').forEach((el) => {
-    el.addEventListener('click', async (e) => {
-      await navigator.clipboard.writeText(e.currentTarget.dataset.copy);
-      e.currentTarget.querySelector('.copy-chip').textContent = 'Copied';
-      setTimeout(() => (e.currentTarget.querySelector('.copy-chip').textContent = 'Copy'), 1000);
-    });
-  });
-
-  app.querySelectorAll('.photo-card[data-photo-id]').forEach((el) => {
-    el.addEventListener('click', (e) => {
-      const photo = state.data.photos.find((x) => x.id === e.currentTarget.dataset.photoId);
-      if (!photo) return;
-      if (photo.externalLink) return window.open(photo.externalLink, '_blank', 'noreferrer');
-      if (photo.lightbox) {
-        lightboxImage.src = photo.image;
-        lightboxCaption.textContent = photo.caption;
-        lightbox.showModal();
-      }
-    });
-  });
+  bindInteractions();
 }
 
-function buildDynamicCss() {
-  const d = state.data;
-  const profileVars = `.profile-copy{--name-font-size:${d.profile.nameFontSize}rem;--name-letter-spacing:${d.profile.nameLetterSpacing}em;--about-width:${d.profile.aboutWidth}ch;}`;
-  const ctaCss = d.ctas.map((x, i) => styleRule(`.style-cta-${i}`, x.style, true)).join('');
-  const iconCss = d.icons
-    .map((x, i) => `${styleRule(`.style-icon-${i}`, x.style)}.style-icon-${i}{transform:scale(${x.size});}`)
-    .join('');
-  const contactCss = d.contacts.map((x, i) => styleRule(`.style-contact-${i}`, x.style)).join('');
-  return `${profileVars}${ctaCss}${iconCss}${contactCss}`;
+function renderCta(cta, index) {
+  return `<a class="glass-button" data-size="${cta.size === 'medium' ? 'medium' : cta.size === 'large' ? 'large' : 'small'}" href="${cta.href}" ${cta.newTab ? 'target="_blank" rel="noreferrer"':''} data-editable="cta" data-index="${index}" draggable="${state.admin}">${editTools('cta', index)}${esc(cta.text)}</a>`;
 }
-
-function styleRule(selector, style, includePadding = false) {
-  return `${selector}{--glow:${style.glow};color:${style.text};border-color:${style.border};background:linear-gradient(140deg,rgba(255,255,255,0.22),rgba(255,255,255,0.03)),${style.background};--glass-opacity:${style.opacity};--glass-blur:${style.blur}px;border-radius:${style.radius}px;${
-    includePadding ? `padding:${style.padding}rem;` : ''
-  }}`;
+function renderIcon(icon, index) {
+  const tint = icon.tint !== false ? 'tint-on' : '';
+  return `<a class="icon-link ${tint}" href="${icon.href}" data-editable="icon" data-index="${index}" draggable="${state.admin}" ${icon.newTab ? 'target="_blank" rel="noreferrer"':''}>${editTools('icon', index)}${icon.iconImage ? `<img src="${icon.iconImage}" alt="${esc(icon.label || '')}"/>` : `<span>${esc(icon.label || '•')}</span>`}</a>`;
 }
-
-function renderContact(contact, index) {
+function renderContact(contact) {
+  const href = contact.type === 'email' ? `mailto:${contact.value}` : `tel:${contact.value.replace(/\s+/g,'')}`;
   const icon = contact.type === 'email' ? '✉' : '☎';
-  const href = contact.type === 'email' ? `mailto:${contact.value}` : `tel:${contact.value.replace(/\s+/g, '')}`;
-  const copy = contact.copyEnabled ? `data-copy="${escapeHtml(contact.value)}"` : '';
-  const chip = contact.copyEnabled ? '<span class="copy-chip">Copy</span>' : '';
-  return `<a class="contact-card style-contact-${index}" href="${href}" ${copy}>
-    ${contact.showIcon ? `<span>${icon}</span>` : ''}
-    <span>${escapeHtml(contact.value)}</span>
-    ${chip}
-  </a>`;
+  return `<a class="contact-card" href="${href}">${contact.showIcon ? `<span>${icon}</span>`:''}<span>${esc(contact.value)}</span>${contact.copyEnabled?'<span class="copy-chip">Copy</span>':''}</a>`;
+}
+function renderPhoto(photo, index) {
+  return `<figure class="photo-card" data-card-size="${normalizePhotoSize(photo.size)}" data-editable="photo" data-index="${index}" data-photo-id="${photo.id}" draggable="${state.admin}">${editTools('photo', index)}<img src="${photo.image}" alt="${esc(photo.caption || '')}"/>${photo.showCaption ? `<figcaption>${esc(photo.caption||'')}</figcaption>`:''}</figure>`;
+}
+function editTools(type, index='') {
+  if (!state.admin) return '';
+  return `<span class="edit-tools"><button type="button" class="tool-btn" data-tool="edit" data-type="${type}" data-index="${index}">✎</button><button type="button" class="tool-btn" data-tool="drag" title="Drag">⋮⋮</button><button type="button" class="tool-btn" data-tool="size" data-type="${type}" data-index="${index}">◱</button></span>`;
 }
 
-function renderPhotoCard(photo) {
-  const caption = photo.showCaption ? `<figcaption>${escapeHtml(photo.caption)}</figcaption>` : '';
-  return `<figure class="photo-card" data-card-size="${photo.size}" data-photo-id="${photo.id}" role="button" tabindex="0">
-    <img src="${photo.image}" alt="${escapeHtml(photo.caption)}" />
-    ${caption}
-  </figure>`;
-}
+function bindInteractions() {
+  app.querySelectorAll('[data-copy]').forEach((el) => el.addEventListener('click', (e) => navigator.clipboard.writeText(e.currentTarget.dataset.copy)));
 
-function renderAdminControls() {
-  const d = state.data;
-  adminControls.innerHTML = `
-    <fieldset>
-      <legend>Global Theme</legend>
-      ${controlInput('Font Family', 'global.fontFamily', d.global.fontFamily)}
-      ${controlRange('Border Radius', 'global.radius', d.global.radius, 6, 32, 1)}
-      ${controlRange('Glass Opacity', 'global.glassOpacity', d.global.glassOpacity, 0.04, 0.35, 0.01)}
-      ${controlRange('Blur Intensity', 'global.blur', d.global.blur, 8, 40, 1)}
-      ${controlRange('Layout Spacing', 'global.spacing', d.global.spacing, 0.5, 2.2, 0.1)}
-      ${controlRange('Grid Gap', 'global.gridGap', d.global.gridGap, 0.4, 2.5, 0.1)}
-    </fieldset>
-    <fieldset>
-      <legend>Profile Section</legend>
-      ${controlInput('Name', 'profile.name', d.profile.name)}
-      ${controlTextarea('About', 'profile.about', d.profile.about)}
-      ${controlUpload('Profile Image', 'profile.image')}
-      ${controlRange('Name Font Size', 'profile.nameFontSize', d.profile.nameFontSize, 1.2, 3.2, 0.1)}
-      ${controlRange('Letter Spacing', 'profile.nameLetterSpacing', d.profile.nameLetterSpacing, 0, 0.2, 0.01)}
-      ${controlRange('About Width', 'profile.aboutWidth', d.profile.aboutWidth, 30, 72, 1)}
-    </fieldset>
-    <fieldset><legend>Showreel Buttons</legend>${d.ctas.map((cta, i) => buttonEditor(cta, `ctas.${i}`)).join('')}</fieldset>
-    <fieldset><legend>Icon Grid</legend>${d.icons.map((icon, i) => iconEditor(icon, i)).join('')}<button class="glass-button" data-action="add-icon">Add Icon</button></fieldset>
-    <fieldset><legend>Contacts</legend>${d.contacts.map((contact, i) => contactEditor(contact, i)).join('')}</fieldset>
-    <fieldset><legend>Photography Grid</legend>${controlInput('Section Title', 'photographyTitle', d.photographyTitle)}${d.photos
-      .map((photo, i) => photoEditor(photo, i))
-      .join('')}<button class="glass-button" data-action="add-photo">Add Photo</button></fieldset>
-  `;
-
-  adminControls.querySelectorAll('input,select,textarea').forEach((field) => {
-    field.addEventListener('input', handleFieldUpdate);
-    field.addEventListener('change', handleFieldUpdate);
+  app.querySelectorAll('[data-editable]').forEach((el) => {
+    if (state.admin) el.addEventListener('click', (e) => openEditor(e, el));
+    if (state.admin) setupDrag(el);
+    if (el.dataset.editable === 'photo' && !state.admin) {
+      el.addEventListener('click', () => {
+        const item = state.data.photos[Number(el.dataset.index)];
+        if (item.externalLink) return window.open(item.externalLink, '_blank', 'noreferrer');
+        if (item.lightbox) {
+          lightboxImage.src = item.image;
+          lightboxCaption.textContent = item.caption || '';
+          lightbox.showModal();
+        }
+      });
+    }
   });
-  adminControls.querySelectorAll('button[data-action]').forEach((btn) => btn.addEventListener('click', handleAction));
 }
 
-function buttonEditor(item, path) {
-  return `<div class="editor-item">${controlInput('Text', `${path}.text`, item.text)}${controlInput('URL', `${path}.href`, item.href)}${controlSelect(
-    'Size',
-    `${path}.size`,
-    item.size,
-    ['large', 'medium']
-  )}${controlCheckbox('Open New Tab', `${path}.newTab`, item.newTab)}${styleControls(path, item.style)}</div>`;
-}
-function iconEditor(icon, index) {
-  const path = `icons.${index}`;
-  return `<div class="editor-item">${controlInput('Label', `${path}.label`, icon.label)}${controlInput('URL', `${path}.href`, icon.href)}${controlInput(
-    'Tooltip',
-    `${path}.tooltip`,
-    icon.tooltip
-  )}${controlUpload('Upload Icon', `${path}.iconImage`)}${controlRange('Icon Scale', `${path}.size`, icon.size, 0.7, 1.4, 0.05)}${controlCheckbox(
-    'Hover Animation',
-    `${path}.hover`,
-    icon.hover
-  )}${controlCheckbox('Open New Tab', `${path}.newTab`, icon.newTab)}${styleControls(path, icon.style)}<div class="editor-actions"><button class="glass-button" data-action="move-icon-up" data-index="${index}">Up</button><button class="glass-button" data-action="move-icon-down" data-index="${index}">Down</button><button class="glass-button" data-action="delete-icon" data-index="${index}">Delete</button></div></div>`;
-}
-function contactEditor(item, index) {
-  const path = `contacts.${index}`;
-  return `<div class="editor-item">${controlSelect('Type', `${path}.type`, item.type, ['email', 'phone'])}${controlInput('Value', `${path}.value`, item.value)}${controlCheckbox('Show Icon', `${path}.showIcon`, item.showIcon)}${controlCheckbox('Copy Toggle', `${path}.copyEnabled`, item.copyEnabled)}${styleControls(path, item.style)}</div>`;
-}
-function photoEditor(item, index) {
-  const path = `photos.${index}`;
-  return `<div class="editor-item">${controlUpload('Upload Image', `${path}.image`)}${controlInput('Caption', `${path}.caption`, item.caption)}${controlSelect(
-    'Card Size',
-    `${path}.size`,
-    item.size,
-    ['small', 'medium', 'tall', 'large']
-  )}${controlCheckbox('Show Caption', `${path}.showCaption`, item.showCaption)}${controlCheckbox('Lightbox', `${path}.lightbox`, item.lightbox)}${controlInput(
-    'External Link (optional)',
-    `${path}.externalLink`,
-    item.externalLink
-  )}<div class="editor-actions"><button class="glass-button" data-action="move-photo-up" data-index="${index}">Up</button><button class="glass-button" data-action="move-photo-down" data-index="${index}">Down</button><button class="glass-button" data-action="delete-photo" data-index="${index}">Delete</button></div></div>`;
-}
-function styleControls(path, style) {
-  return `${controlColor('Background Tint', `${path}.style.background`, style.background)}${controlColor('Text Color', `${path}.style.text`, style.text)}${controlColor(
-    'Border Color',
-    `${path}.style.border`,
-    style.border
-  )}${controlColor('Hover Glow', `${path}.style.glow`, style.glow)}${controlRange(
-    'Glass Opacity',
-    `${path}.style.opacity`,
-    style.opacity,
-    0.04,
-    0.35,
-    0.01
-  )}${controlRange('Blur Intensity', `${path}.style.blur`, style.blur, 8, 40, 1)}${controlRange('Radius', `${path}.style.radius`, style.radius, 8, 30, 1)}${controlRange('Padding', `${path}.style.padding`, style.padding, 0.4, 2, 0.1)}`;
+function setupDrag(el) {
+  if (!['cta','icon','photo'].includes(el.dataset.editable)) return;
+  el.addEventListener('dragstart', () => { state.drag = { type: el.dataset.editable, from: Number(el.dataset.index) }; el.classList.add('dragging'); });
+  el.addEventListener('dragend', () => { el.classList.remove('dragging'); state.drag = null; });
+  el.addEventListener('dragover', (e) => e.preventDefault());
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!state.drag || state.drag.type !== el.dataset.editable) return;
+    const to = Number(el.dataset.index);
+    reorder(state.drag.type, state.drag.from, to);
+  });
 }
 
-const controlInput = (label, path, value) => `<label class="control">${label}<input data-path="${path}" value="${escapeAttr(value)}" /></label>`;
-const controlTextarea = (label, path, value) => `<label class="control">${label}<textarea data-path="${path}">${escapeHtml(value)}</textarea></label>`;
-const controlRange = (label, path, value, min, max, step) => `<label class="control">${label}<input type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-path="${path}" /><small>${value}</small></label>`;
-const controlSelect = (label, path, value, options) => `<label class="control">${label}<select data-path="${path}">${options.map((item) => `<option ${item === value ? 'selected' : ''} value="${item}">${item}</option>`).join('')}</select></label>`;
-const controlCheckbox = (label, path, value) => `<label class="control">${label}<input type="checkbox" data-path="${path}" ${value ? 'checked' : ''} /></label>`;
-const controlUpload = (label, path) => `<label class="control">${label}<input type="file" accept="image/*" data-path="${path}" /></label>`;
-const controlColor = (label, path, value) => `<label class="control">${label}<input data-path="${path}" value="${escapeAttr(value)}" /></label>`;
+function reorder(type, from, to) {
+  if (from === to) return;
+  const map = { cta: 'ctas', icon: 'icons', photo: 'photos' };
+  const arr = state.data[map[type]];
+  const [item] = arr.splice(from, 1);
+  arr.splice(to, 0, item);
+  render();
+}
 
-function handleFieldUpdate(event) {
-  const target = event.currentTarget;
-  const path = target.dataset.path;
-  if (!path) return;
+function openEditor(event, el) {
+  if (event.target.closest('[data-tool="drag"]')) return;
+  event.preventDefault();
+  event.stopPropagation();
 
-  if (target.type === 'file') {
-    const [file] = target.files;
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setByPath(state.data, path, reader.result);
-      saveAndRender();
-    };
-    reader.readAsDataURL(file);
-    return;
+  const type = event.target.dataset.type || el.dataset.editable;
+  const index = Number(event.target.dataset.index ?? el.dataset.index ?? -1);
+  state.popoverTarget = { type, index };
+
+  if (type === 'cta') popover.innerHTML = ctaEditor(index);
+  else if (type === 'icon') popover.innerHTML = iconEditor(index);
+  else if (type === 'photo') popover.innerHTML = photoEditor(index);
+  else if (type === 'profile') popover.innerHTML = profileEditor();
+
+  bindPopoverActions();
+  const rect = el.getBoundingClientRect();
+  popover.style.top = `${Math.min(window.innerHeight - 260, rect.bottom + 8)}px`;
+  popover.style.left = `${Math.max(8, Math.min(window.innerWidth - 330, rect.left))}px`;
+  popover.classList.remove('hidden');
+}
+
+function ctaEditor(i) {
+  const x = state.data.ctas[i];
+  return `<div class="row"><label>Title</label><input data-field="text" value="${escAttr(x.text)}"/></div>
+  <div class="row"><label>Link</label><input data-field="href" value="${escAttr(x.href)}"/></div>
+  <div class="row"><label>Size</label><select data-field="size"><option ${sel(x.size,'small')}>small</option><option ${sel(x.size,'medium')}>medium</option><option ${sel(x.size,'large')}>large</option></select></div>
+  <div class="row"><label><input type="checkbox" data-field="newTab" ${x.newTab?'checked':''}/> Open new tab</label></div>
+  <div class="actions"><button data-action="save">Save</button><button data-action="duplicate">Duplicate</button><button data-action="delete">Delete</button></div>`;
+}
+function iconEditor(i) {
+  const x = state.data.icons[i];
+  return `<div class="row"><label>Label</label><input data-field="label" value="${escAttr(x.label||'')}"/></div>
+  <div class="row"><label>Link</label><input data-field="href" value="${escAttr(x.href||'')}"/></div>
+  <div class="row"><label>Icon Image</label><input type="file" data-field="iconImage" accept="image/*"/></div>
+  <div class="row"><label><input type="checkbox" data-field="tint" ${x.tint!==false?'checked':''}/> Background tint</label></div>
+  <div class="actions"><button data-action="save">Save</button><button data-action="delete">Delete</button></div>`;
+}
+function photoEditor(i) {
+  const x = state.data.photos[i];
+  return `<div class="row"><label>Caption</label><input data-field="caption" value="${escAttr(x.caption||'')}"/></div>
+  <div class="row"><label>Size</label><select data-field="size"><option ${sel(normalizePhotoSize(x.size),'small')}>small</option><option ${sel(normalizePhotoSize(x.size),'wide')}>wide</option><option ${sel(normalizePhotoSize(x.size),'tall')}>tall</option><option ${sel(normalizePhotoSize(x.size),'large')}>large</option></select></div>
+  <div class="row"><label>Replace image</label><input type="file" data-field="image" accept="image/*"/></div>
+  <div class="row"><label><input type="checkbox" data-field="showCaption" ${x.showCaption?'checked':''}/> Show caption</label></div>
+  <div class="row"><label><input type="checkbox" data-field="lightbox" ${x.lightbox?'checked':''}/> Lightbox</label></div>
+  <div class="actions"><button data-action="save">Save</button><button data-action="delete">Delete</button></div>`;
+}
+function profileEditor() {
+  const x = state.data.profile;
+  return `<div class="row"><label>Name</label><input data-field="name" value="${escAttr(x.name)}"/></div>
+  <div class="row"><label>About</label><textarea data-field="about">${esc(x.about)}</textarea></div>
+  <div class="row"><label>Profile image</label><input type="file" data-field="image" accept="image/*"/></div>
+  <div class="actions"><button data-action="save">Save</button></div>`;
+}
+
+function bindPopoverActions() {
+  popover.querySelectorAll('button[data-action]').forEach((btn) => btn.addEventListener('click', handlePopoverAction));
+}
+
+async function handlePopoverAction(e) {
+  const { type, index } = state.popoverTarget || {};
+  if (!type) return;
+  const action = e.currentTarget.dataset.action;
+  const target = type === 'profile' ? state.data.profile : state.data[`${type}s`][index];
+
+  if (action === 'delete' && type !== 'profile') { state.data[`${type}s`].splice(index, 1); closePopover(); render(); return; }
+  if (action === 'duplicate' && type === 'cta') { state.data.ctas.splice(index + 1, 0, structuredClone(target)); closePopover(); render(); return; }
+
+  for (const field of popover.querySelectorAll('[data-field]')) {
+    const key = field.dataset.field;
+    if (field.type === 'file') {
+      const file = field.files[0];
+      if (!file) continue;
+      target[key] = await fileToDataUrl(file);
+    } else if (field.type === 'checkbox') target[key] = field.checked;
+    else target[key] = field.value;
   }
-
-  let value;
-  if (target.type === 'checkbox') value = target.checked;
-  else if (target.type === 'range') {
-    value = Number(target.value);
-    const small = target.parentElement.querySelector('small');
-    if (small) small.textContent = target.value;
-  } else value = target.value;
-
-  setByPath(state.data, path, value);
-  saveAndRender(false);
+  closePopover();
+  render();
 }
 
-function handleAction(event) {
-  const action = event.currentTarget.dataset.action;
-  const index = Number(event.currentTarget.dataset.index);
-  if (action === 'add-icon') state.data.icons.push(iconItem('★', '#'));
-  if (action === 'move-icon-up') moveItem(state.data.icons, index, -1);
-  if (action === 'move-icon-down') moveItem(state.data.icons, index, 1);
-  if (action === 'delete-icon') state.data.icons.splice(index, 1);
-  if (action === 'add-photo') state.data.photos.push(photoItem('small'));
-  if (action === 'move-photo-up') moveItem(state.data.photos, index, -1);
-  if (action === 'move-photo-down') moveItem(state.data.photos, index, 1);
-  if (action === 'delete-photo') state.data.photos.splice(index, 1);
-  saveAndRender();
-}
-function moveItem(arr, index, delta) {
-  const next = index + delta;
-  if (next < 0 || next >= arr.length) return;
-  [arr[index], arr[next]] = [arr[next], arr[index]];
+function openThemePicker(e) {
+  state.popoverTarget = { type: 'theme', index: -1 };
+  popover.innerHTML = `<div class="actions"><button data-theme="midnight">Midnight</button><button data-theme="slate">Slate</button><button data-theme="aurora">Aurora</button></div>`;
+  popover.querySelectorAll('[data-theme]').forEach((btn)=>btn.addEventListener('click', ()=>{ state.data.global.themePreset = btn.dataset.theme; closePopover(); render(); }));
+  const r = themeBtn.getBoundingClientRect();
+  popover.style.top = `${r.top - 70}px`;
+  popover.style.left = `${Math.max(10, r.left - 120)}px`;
+  popover.classList.remove('hidden');
+  e.stopPropagation();
 }
 
-async function attemptLogin(password) {
+async function login(password) {
   const hash = await sha256(password);
-  if (hash !== OWNER_AUTH.hash) {
-    authError.textContent = 'Incorrect password.';
-    return;
-  }
-  state.admin = true;
-  localStorage.setItem(AUTH_KEY, 'true');
+  if (hash !== OWNER_HASH) { authError.textContent = 'Incorrect password.'; return; }
   authError.textContent = '';
   authDialog.close();
+  state.admin = true;
   render();
 }
-function logout() {
-  state.admin = false;
-  localStorage.removeItem(AUTH_KEY);
-  adminPanel.classList.add('hidden');
-  render();
+
+function applyTheme() {
+  const preset = THEMES[state.data.global.themePreset] || THEMES.midnight;
+  Object.entries(preset).forEach(([k,v]) => document.documentElement.style.setProperty(k, v));
 }
-function resetDefaults() {
-  state.data = structuredClone(FALLBACK_DATA);
-  saveAndRender();
-}
+
 function exportData() {
   const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: 'application/json' });
-  const href = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = href;
-  link.download = 'portfolio-data.json';
-  link.click();
-  URL.revokeObjectURL(href);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'portfolio-data.json'; a.click(); URL.revokeObjectURL(url);
 }
-function toggleAdminPanel() {
-  adminPanel.classList.toggle('hidden');
+
+function onDocumentClick(e) {
+  if (popover.classList.contains('hidden')) return;
+  if (!e.target.closest('#editPopover') && !e.target.closest('[data-editable]') && !e.target.closest('#themeBtn')) closePopover();
 }
-function saveAndRender(withPanel = true) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
-  render();
-  if (!withPanel) adminPanel.classList.remove('hidden');
+function closePopover() { popover.classList.add('hidden'); state.popoverTarget = null; }
+
+function normalizePhotoSize(size) {
+  if (size === 'medium') return 'wide';
+  return ['small','wide','tall','large'].includes(size) ? size : 'small';
 }
-function setByPath(obj, path, value) {
-  const keys = path.split('.');
-  const last = keys.pop();
-  const target = keys.reduce((acc, key) => acc[key], obj);
-  target[last] = value;
-}
-function escapeHtml(input = '') {
-  return String(input).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-}
-function escapeAttr(input = '') {
-  return escapeHtml(input).replaceAll("'", '&#39;');
-}
-async function sha256(input) {
-  const bytes = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)].map((x) => x.toString(16).padStart(2, '0')).join('');
-}
+const esc = (s='') => String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const escAttr = (s='') => esc(s).replaceAll("'", '&#39;');
+const sel = (a,b) => (a===b?'selected':'');
+const fileToDataUrl = (f) => new Promise((res)=>{ const r = new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+async function sha256(input) { const bytes = new TextEncoder().encode(input); const d = await crypto.subtle.digest('SHA-256', bytes); return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join(''); }

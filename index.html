@@ -8,33 +8,27 @@
 </head>
 <body>
   <div class="page-shell"></div>
-  <main class="container" id="app" aria-live="polite"></main>
+  <main id="app" class="container" aria-live="polite"></main>
 
-  <button id="adminAccessBtn" class="glass-button admin-access">Owner Edit Mode</button>
+  <div id="floatingActions" class="floating-actions">
+    <button id="adminAccessBtn" class="glass-button" type="button">Owner Edit Mode</button>
+    <button id="themeBtn" class="glass-button hidden" type="button">Theme</button>
+    <button id="exportBtn" class="glass-button hidden" type="button">Export JSON</button>
+    <button id="logoutBtn" class="glass-button hidden" type="button">Logout</button>
+  </div>
 
-  <section id="adminPanel" class="admin-panel hidden" aria-label="Admin customizations">
-    <header class="admin-header">
-      <h2>Admin Mode</h2>
-      <p>All changes are stored in local storage as JSON-ready data.</p>
-      <div class="admin-actions">
-        <button class="glass-button" id="exportBtn">Export JSON</button>
-        <button class="glass-button" id="resetBtn">Reset Defaults</button>
-        <button class="glass-button" id="logoutBtn">Logout</button>
-      </div>
-    </header>
-    <div id="adminControls" class="admin-controls"></div>
-  </section>
+  <div id="editPopover" class="edit-popover hidden" role="dialog" aria-label="Inline editor"></div>
 
   <dialog id="authDialog" class="auth-dialog">
     <form method="dialog" id="authForm" class="auth-form glass-card">
       <h3>Owner Authentication</h3>
       <p>Enter owner password to enable edit mode.</p>
       <label for="passwordInput">Password</label>
-      <input id="passwordInput" name="password" type="password" autocomplete="current-password" required />
+      <input id="passwordInput" name="password" type="password" required />
       <p id="authError" class="auth-error" role="alert"></p>
       <menu>
         <button value="cancel" class="glass-button">Cancel</button>
-        <button id="authSubmit" value="default" class="glass-button">Unlock</button>
+        <button value="default" class="glass-button">Unlock</button>
       </menu>
     </form>
   </dialog>
