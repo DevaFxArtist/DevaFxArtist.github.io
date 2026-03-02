@@ -128,15 +128,37 @@ async function init() {
 
 async function hydrateData() {
   const local = localStorage.getItem(STORAGE_KEY);
-  if (local) return JSON.parse(local);
+  if (local) {
+    try {
+      const parsedLocal = JSON.parse(local);
+      if (isValidDataShape(parsedLocal)) return parsedLocal;
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
   try {
     const remote = await fetch('data.json');
     if (remote.ok) {
-      const parsed = await remote.json();
-      if (parsed.profile && parsed.global) return parsed;
+      const parsedRemote = await remote.json();
+      if (isValidDataShape(parsedRemote)) return parsedRemote;
     }
   } catch {}
+
   return structuredClone(FALLBACK_DATA);
+}
+
+function isValidDataShape(data) {
+  return Boolean(
+    data &&
+      typeof data === 'object' &&
+      data.profile &&
+      data.global &&
+      Array.isArray(data.ctas) &&
+      Array.isArray(data.icons) &&
+      Array.isArray(data.contacts) &&
+      Array.isArray(data.photos)
+  );
 }
 
 function render() {
