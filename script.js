@@ -1,7 +1,9 @@
 const STORAGE_KEY = 'portfolio-glass-data-v2';
 const AUTH_KEY = 'portfolio-admin-auth';
-// Password: deva-owner-2026
-const OWNER_HASH = '095ab38a81c5d9507be339d817c77ecb89e7a461cfa5e7f145f281b6d44ad410';
+const OWNER_AUTH = Object.freeze({
+  // Password: deva-owner-2026
+  hash: '095ab38a81c5d9507be339d817c77ecb89e7a461cfa5e7f145f281b6d44ad410'
+});
 
 const FALLBACK_DATA = {
   profile: {
@@ -96,7 +98,7 @@ function photoItem(size) {
   };
 }
 
-const state = { data: null, admin: localStorage.getItem(AUTH_KEY) === 'true' };
+const state = { data: null, admin: readBooleanFlag(AUTH_KEY) };
 const app = document.getElementById('app');
 const adminPanel = document.getElementById('adminPanel');
 const adminControls = document.getElementById('adminControls');
@@ -109,6 +111,12 @@ const lightboxImage = document.getElementById('lightboxImage');
 const lightboxCaption = document.getElementById('lightboxCaption');
 const dynamicStyles = document.createElement('style');
 document.head.appendChild(dynamicStyles);
+
+
+function readBooleanFlag(key) {
+  return localStorage.getItem(key) === 'true';
+}
+
 
 document.getElementById('closeLightbox').addEventListener('click', () => lightbox.close());
 document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -442,7 +450,7 @@ function moveItem(arr, index, delta) {
 
 async function attemptLogin(password) {
   const hash = await sha256(password);
-  if (hash !== OWNER_HASH) {
+  if (hash !== OWNER_AUTH.hash) {
     authError.textContent = 'Incorrect password.';
     return;
   }
