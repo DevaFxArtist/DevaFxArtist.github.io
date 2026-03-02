@@ -1,259 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deva | FX Artist</title>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:Arial, sans-serif;
-background:#1f1f1f;
-color:white;
-}
-
-/* ===== MAIN WRAPPER ===== */
-
-.container{
-max-width:950px;
-margin:70px auto;
-}
-
-/* ===== PROFILE ===== */
-
-.profile-card{
-background:#3b3b3b;
-border-radius:12px;
-padding:45px;
-display:flex;
-gap:45px;
-align-items:center;
-}
-
-.profile-pic{
-width:150px;
-height:150px;
-border-radius:50%;
-border:3px solid #d8d2a5;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:60px;
-}
-
-.profile-info h1{
-font-size:24px;
-margin-bottom:15px;
-}
-
-.profile-info p{
-font-size:13px;
-line-height:1.6;
-color:#ddd;
-max-width:420px;
-}
-
-.divider{
-margin:55px 0;
-border-top:1px dashed rgba(255,255,255,0.25);
-}
-
-/* ===== SHOWREEL SECTION ===== */
-
-.showreel-wrapper{
-width:720px;
-margin:0 auto;
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
-}
-
-.left-block{
-width:460px;
-display:flex;
-flex-direction:column;
-gap:25px;
-}
-
-.showreel-btn{
-background:#c8c6a4;
-color:#000;
-padding:30px;
-font-size:24px;
-border-radius:6px;
-text-align:center;
-}
-
-.rd-btn{
-background:#7f8f82;
-color:#000;
-padding:18px;
-font-size:16px;
-border-radius:6px;
-text-align:center;
-}
-
-.right-block{
-width:200px;
-display:flex;
-flex-direction:column;
-gap:30px;
-}
-
-.icons-grid{
-display:grid;
-grid-template-columns:repeat(2,60px);
-gap:30px;
-}
-
-.icon{
-width:60px;
-height:60px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:bold;
-color:white;
-}
-
-.linkedin{background:#2d5aa0;}
-.youtube{background:#c4302b;}
-.artstation{background:#13aff0;}
-.github{background:#6e5494;}
-
-.contact{
-display:flex;
-flex-direction:column;
-gap:12px;
-}
-
-.email{
-background:#b17c3f;
-color:black;
-padding:8px 14px;
-border-radius:4px;
-font-size:12px;
-}
-
-.phone{
-background:#bdbdc6;
-color:black;
-padding:8px 14px;
-border-radius:4px;
-font-size:12px;
-}
-
-/* ===== PHOTOGRAPHY ===== */
-
-.section-title{
-text-align:center;
-margin:40px 0;
-}
-
-.section-title span{
-background:#8c9b5c;
-padding:10px 40px;
-border-radius:4px;
-color:black;
-font-size:18px;
-}
-
-.photo-grid{
-width:820px;
-margin:0 auto;
-display:grid;
-grid-template-columns:repeat(6,1fr);
-grid-auto-rows:130px;
-gap:20px;
-}
-
-.photo{
-background:#5a5a5a;
-border-radius:6px;
-}
-
-/* size variations */
-
-.w2{grid-column:span 2;}
-.w3{grid-column:span 3;}
-.h2{grid-row:span 2;}
-.h3{grid-row:span 3;}
-
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deva | FX Artist</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
+  <div class="page-shell"></div>
+  <main id="app" class="container" aria-live="polite"></main>
 
-<div class="container">
+  <div id="floatingActions" class="floating-actions">
+    <button id="adminAccessBtn" class="glass-button" type="button">Owner Edit Mode</button>
+    <button id="themeBtn" class="glass-button hidden" type="button">Theme</button>
+    <button id="exportBtn" class="glass-button hidden" type="button">Export JSON</button>
+    <button id="logoutBtn" class="glass-button hidden" type="button">Logout</button>
+  </div>
 
-<!-- PROFILE -->
-<div class="profile-card">
-<div class="profile-pic">👤</div>
-<div class="profile-info">
-<h1>DEVA BHUVANESWARAN</h1>
-<p>
-This is Deva, a passionate Artist committed to continuously improving my craft.
-I aim to contribute my skills, creativity, and dedication to delivering extraordinary work.
-</p>
-</div>
-</div>
+  <div id="editPopover" class="edit-popover hidden" role="dialog" aria-label="Inline editor"></div>
 
-<div class="divider"></div>
+  <dialog id="authDialog" class="auth-dialog">
+    <form method="dialog" id="authForm" class="auth-form glass-card">
+      <h3>Owner Authentication</h3>
+      <p>Enter owner password to enable edit mode.</p>
+      <label for="passwordInput">Password</label>
+      <input id="passwordInput" name="password" type="password" required />
+      <p id="authError" class="auth-error" role="alert"></p>
+      <menu>
+        <button value="cancel" class="glass-button">Cancel</button>
+        <button value="default" class="glass-button">Unlock</button>
+      </menu>
+    </form>
+  </dialog>
 
-<!-- SHOWREEL -->
-<div class="showreel-wrapper">
+  <dialog id="lightbox" class="lightbox">
+    <button id="closeLightbox" class="glass-button close-lightbox" aria-label="Close preview">×</button>
+    <img id="lightboxImage" alt="" />
+    <p id="lightboxCaption"></p>
+  </dialog>
 
-<div class="left-block">
-<div class="showreel-btn">Showreel</div>
-<div class="rd-btn">R&D Works</div>
-</div>
-
-<div class="right-block">
-
-<div class="icons-grid">
-<div class="icon linkedin">in</div>
-<div class="icon youtube">▶</div>
-<div class="icon artstation">A</div>
-<div class="icon github">G</div>
-</div>
-
-<div class="contact">
-<div class="email">devafx.houdini@gmail.com</div>
-<div class="phone">9843626604</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="divider"></div>
-
-<!-- PHOTOGRAPHY -->
-
-<div class="section-title">
-<span>Photography</span>
-</div>
-
-<div class="photo-grid">
-<div class="photo w3 h2"></div>
-<div class="photo w3"></div>
-<div class="photo w2"></div>
-<div class="photo w2"></div>
-<div class="photo w2"></div>
-<div class="photo w3"></div>
-<div class="photo w3 h2"></div>
-<div class="photo w2"></div>
-<div class="photo w2"></div>
-</div>
-
-</div>
-
+  <script src="script.js" type="module"></script>
 </body>
 </html>
